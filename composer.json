@@ -26,12 +26,12 @@
     },
 	"autoload" : {
 		"psr-4" : {
-			"n2n\\bind\\" : "src/app/n2n/cache"
+			"n2n\\cache\\" : "src/app/n2n/cache"
 		}
 	},
 	"autoload-dev" : {
 		"psr-4" : {
-			"n2n\\bind\\": "src/test/n2n/cache"
+			"n2n\\cache\\": "src/test/n2n/cache"
 		}
 	},
 	"require-dev" : {
