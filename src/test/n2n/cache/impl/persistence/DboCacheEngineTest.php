@@ -12,7 +12,7 @@ use n2n\spec\dbo\meta\structure\StringColumn;
 use n2n\spec\dbo\meta\structure\IndexType;
 use n2n\spec\dbo\meta\structure\Table;
 
-class DdoCacheEngineTest extends TestCase {
+class DboCacheEngineTest extends TestCase {
 	private Pdo $pdo;
 	private DbTestPdoUtil $pdoUtil;
 
@@ -23,8 +23,8 @@ class DdoCacheEngineTest extends TestCase {
 		$this->pdoUtil = new DbTestPdoUtil($this->pdo);
 	}
 
-	private function createEngine(DdoCacheDataSize $pdoCacheDataSize = DdoCacheDataSize::STRING): DdoCacheEngine {
-		return new DdoCacheEngine($this->pdo, 'data', 'characteristic', $pdoCacheDataSize);
+	private function createEngine(DboCacheDataSize $pdoCacheDataSize = DboCacheDataSize::STRING): DboCacheEngine {
+		return new DboCacheEngine($this->pdo, 'data', 'characteristic', $pdoCacheDataSize);
 	}
 
 	function testCreateDataTable(): void {

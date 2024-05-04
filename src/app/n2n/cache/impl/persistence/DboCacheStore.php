@@ -6,12 +6,12 @@ use n2n\util\cache\CacheItem;
 use n2n\persistence\Pdo;
 use n2n\persistence\PdoException;
 
-class DdoCacheStore implements CacheStore {
+class DboCacheStore implements CacheStore {
 	private string $dataTableName = 'cached_data';
 	private string $characteristicTableName = 'cached_characteristic';
-	private DdoCacheDataSize $pdoCacheDataSize = DdoCacheDataSize::TEXT;
+	private DboCacheDataSize $pdoCacheDataSize = DboCacheDataSize::TEXT;
 	private bool $tableAutoCreated = true;
-	private ?DdoCacheEngine $pdoCacheEngine = null;
+	private ?DboCacheEngine $pdoCacheEngine = null;
 
 	function __construct(private Pdo $pdo) {
 	}
@@ -36,12 +36,12 @@ class DdoCacheStore implements CacheStore {
 		return $this->characteristicTableName;
 	}
 
-	public function setPdoCacheDataSize(DdoCacheDataSize $pdoCacheDataSize): DdoCacheStore {
+	public function setPdoCacheDataSize(DboCacheDataSize $pdoCacheDataSize): DboCacheStore {
 		$this->pdoCacheDataSize = $pdoCacheDataSize;
 		return $this;
 	}
 
-	public function getPdoCacheDataSize(): DdoCacheDataSize {
+	public function getPdoCacheDataSize(): DboCacheDataSize {
 		return $this->pdoCacheDataSize;
 	}
 
@@ -49,14 +49,14 @@ class DdoCacheStore implements CacheStore {
 		return $this->tableAutoCreated;
 	}
 
-	public function setTableAutoCreated(bool $tableAutoCreated): DdoCacheStore {
+	public function setTableAutoCreated(bool $tableAutoCreated): DboCacheStore {
 		$this->tableAutoCreated = $tableAutoCreated;
 		return $this;
 	}
 
 	private function tableCheckedCall(\Closure $closure): mixed {
 		if ($this->pdoCacheEngine === null) {
-			$this->pdoCacheEngine = new DdoCacheEngine($this->pdo, $this->dataTableName, $this->characteristicTableName,
+			$this->pdoCacheEngine = new DboCacheEngine($this->pdo, $this->dataTableName, $this->characteristicTableName,
 					$this->pdoCacheDataSize);
 		}
 
@@ -106,8 +106,8 @@ class DdoCacheStore implements CacheStore {
 			return null;
 		}
 
-		return new CacheItem($result[DdoCacheEngine::NAME_COLUMN], $result[DdoCacheEngine::CHARACTERISTICS_COLUMN],
-				$result[DdoCacheEngine::DATA_COLUMN]);
+		return new CacheItem($result[DboCacheEngine::NAME_COLUMN], $result[DboCacheEngine::CHARACTERISTICS_COLUMN],
+				$result[DboCacheEngine::DATA_COLUMN]);
 	}
 
 	public function remove(string $name, array $characteristics): void {

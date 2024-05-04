@@ -8,7 +8,7 @@ use n2n\impl\persistence\meta\sqlite\SqliteDialect;
 use n2n\core\config\PersistenceUnitConfig;
 use n2n\test\DbTestPdoUtil;
 
-class DdoCacheStoreTest extends TestCase {
+class DboCacheStoreTest extends TestCase {
 	private Pdo $pdo;
 	private DbTestPdoUtil $pdoUtil;
 
@@ -21,7 +21,7 @@ class DdoCacheStoreTest extends TestCase {
 	}
 
 	function testWrite(): void {
-		$store = (new DdoCacheStore($this->pdo))->setPdoCacheDataSize(DdoCacheDataSize::STRING);
+		$store = (new DboCacheStore($this->pdo))->setPdoCacheDataSize(DboCacheDataSize::STRING);
 
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
@@ -38,7 +38,7 @@ class DdoCacheStoreTest extends TestCase {
 	}
 
 	function testRead(): void {
-		$store = (new DdoCacheStore($this->pdo))->setPdoCacheDataSize(DdoCacheDataSize::STRING);
+		$store = (new DboCacheStore($this->pdo))->setPdoCacheDataSize(DboCacheDataSize::STRING);
 
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
@@ -54,7 +54,7 @@ class DdoCacheStoreTest extends TestCase {
 	}
 
 	function testFindAll(): void {
-		$store = (new DdoCacheStore($this->pdo))->setPdoCacheDataSize(DdoCacheDataSize::STRING);
+		$store = (new DboCacheStore($this->pdo))->setPdoCacheDataSize(DboCacheDataSize::STRING);
 
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
@@ -69,7 +69,7 @@ class DdoCacheStoreTest extends TestCase {
 	}
 
 	function testRemove(): void {
-		$store = (new DdoCacheStore($this->pdo))->setPdoCacheDataSize(DdoCacheDataSize::STRING);
+		$store = (new DboCacheStore($this->pdo))->setPdoCacheDataSize(DboCacheDataSize::STRING);
 
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
@@ -87,7 +87,7 @@ class DdoCacheStoreTest extends TestCase {
 	}
 
 	function testRemoveAll(): void {
-		$store = (new DdoCacheStore($this->pdo))->setPdoCacheDataSize(DdoCacheDataSize::STRING);
+		$store = (new DboCacheStore($this->pdo))->setPdoCacheDataSize(DboCacheDataSize::STRING);
 
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
@@ -105,7 +105,7 @@ class DdoCacheStoreTest extends TestCase {
 	}
 
 	function testClear(): void {
-		$store = (new DdoCacheStore($this->pdo))->setPdoCacheDataSize(DdoCacheDataSize::STRING);
+		$store = (new DboCacheStore($this->pdo))->setPdoCacheDataSize(DboCacheDataSize::STRING);
 
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));

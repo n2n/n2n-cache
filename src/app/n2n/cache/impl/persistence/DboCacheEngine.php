@@ -12,7 +12,7 @@ use n2n\spec\dbo\meta\data\impl\QueryItems;
 use n2n\spec\dbo\Dbo;
 use n2n\spec\dbo\meta\structure\IndexType;
 
-class DdoCacheEngine {
+class DboCacheEngine {
 	const NAME_COLUMN = 'name';
 	const CHARACTERISTICS_COLUMN = 'characteristics';
 	const CHARACTERISTIC_COLUMN = 'characteristic';
@@ -28,7 +28,7 @@ class DdoCacheEngine {
 	private ?string $characteristicDeleteSql = null;
 
 	function __construct(private readonly Dbo $dbo, private readonly string $dataTableName,
-			private readonly string $characteristicTableName, private readonly DdoCacheDataSize $pdoCacheDataSize) {
+			private readonly string $characteristicTableName, private readonly DboCacheDataSize $pdoCacheDataSize) {
 	}
 
 	private function dataSelectSql(bool $nameIncluded, bool $characteristicsIncluded): string {
@@ -295,7 +295,7 @@ class DdoCacheEngine {
 		}
 
 		throw new IllegalStateException('Pdo "' . $this->dbo->getDataSourceName() . '" supplied to '
-				. DdoCacheStore::class . ' is already in transaction which indicates it might be managed by a '
+				. DboCacheStore::class . ' is already in transaction which indicates it might be managed by a '
 				. ' TransactionManager. DdoCacheEngine must be able to manage its PDO on its own.');
 	}
 
@@ -409,10 +409,10 @@ class DdoCacheEngine {
 		$dataTable->createIndex(IndexType::INDEX, [self::CHARACTERISTICS_COLUMN]);
 
 		switch ($this->pdoCacheDataSize) {
-			case DdoCacheDataSize::STRING:
+			case DboCacheDataSize::STRING:
 				$columnFactory->createStringColumn(self::DATA_COLUMN, self::MAX_LENGTH);
 				break;
-			case DdoCacheDataSize::TEXT:
+			case DboCacheDataSize::TEXT:
 				$columnFactory->createTextColumn(self::DATA_COLUMN, self::MAX_TEXT_SIZE);
 				break;
 		}
