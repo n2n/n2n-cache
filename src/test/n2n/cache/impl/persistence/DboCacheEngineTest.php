@@ -12,6 +12,7 @@ use n2n\spec\dbo\meta\structure\StringColumn;
 use n2n\spec\dbo\meta\structure\IndexType;
 use n2n\spec\dbo\meta\structure\Table;
 use n2n\spec\dbo\meta\structure\BinaryColumn;
+use n2n\spec\dbo\err\DboException;
 
 class DboCacheEngineTest extends TestCase {
 	private Pdo $pdo;
@@ -58,6 +59,9 @@ class DboCacheEngineTest extends TestCase {
 		$this->assertCount(0, $this->pdoUtil->select('data', null));
 	}
 
+	/**
+	 * @throws DboException
+	 */
 	function testCreateCharacteristicTable(): void {
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('data'));
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('characteristic'));
