@@ -402,15 +402,15 @@ class DboCacheEngine {
 		$database = $metaData->getDatabase();
 		$dataTable = $database->createMetaEntityFactory()->createTable($this->dataTableName);
 		$columnFactory = $dataTable->createColumnFactory();
-		$columnFactory->createStringColumn(self::NAME_COLUMN, self::MAX_LENGTH)->setNullAllowed(false);
-		$columnFactory->createStringColumn(self::CHARACTERISTICS_COLUMN, self::MAX_LENGTH)->setNullAllowed(false);
+		$columnFactory->createBinaryColumn(self::NAME_COLUMN, self::MAX_LENGTH)->setNullAllowed(false);
+		$columnFactory->createBinaryColumn(self::CHARACTERISTICS_COLUMN, self::MAX_LENGTH)->setNullAllowed(false);
 
 		$dataTable->createIndex(IndexType::PRIMARY, [self::NAME_COLUMN, self::CHARACTERISTICS_COLUMN]);
 		$dataTable->createIndex(IndexType::INDEX, [self::CHARACTERISTICS_COLUMN]);
 
 		switch ($this->pdoCacheDataSize) {
 			case DboCacheDataSize::STRING:
-				$columnFactory->createStringColumn(self::DATA_COLUMN, self::MAX_LENGTH);
+				$columnFactory->createBinaryColumn(self::DATA_COLUMN, self::MAX_LENGTH);
 				break;
 			case DboCacheDataSize::TEXT:
 				$columnFactory->createTextColumn(self::DATA_COLUMN, self::MAX_TEXT_SIZE);
@@ -429,9 +429,9 @@ class DboCacheEngine {
 		$database = $metaData->getDatabase();
 		$characteristicTable = $database->createMetaEntityFactory()->createTable($this->characteristicTableName);
 		$columnFactory = $characteristicTable->createColumnFactory();
-		$columnFactory->createStringColumn(self::NAME_COLUMN, self::MAX_LENGTH)->setNullAllowed(false);
-		$columnFactory->createStringColumn(self::CHARACTERISTICS_COLUMN, self::MAX_LENGTH)->setNullAllowed(false);
-		$columnFactory->createStringColumn(self::CHARACTERISTIC_COLUMN, self::MAX_LENGTH)->setNullAllowed(false);
+		$columnFactory->createBinaryColumn(self::NAME_COLUMN, self::MAX_LENGTH)->setNullAllowed(false);
+		$columnFactory->createBinaryColumn(self::CHARACTERISTICS_COLUMN, self::MAX_LENGTH)->setNullAllowed(false);
+		$columnFactory->createBinaryColumn(self::CHARACTERISTIC_COLUMN, self::MAX_LENGTH)->setNullAllowed(false);
 
 		$characteristicTable->createIndex(IndexType::PRIMARY, [self::NAME_COLUMN, self::CHARACTERISTICS_COLUMN, self::CHARACTERISTIC_COLUMN]);
 		$characteristicTable->createIndex(IndexType::INDEX, [self::CHARACTERISTIC_COLUMN, self::NAME_COLUMN]);

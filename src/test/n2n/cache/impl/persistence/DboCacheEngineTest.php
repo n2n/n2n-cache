@@ -11,6 +11,7 @@ use n2n\persistence\meta\structure\DuplicateMetaElementException;
 use n2n\spec\dbo\meta\structure\StringColumn;
 use n2n\spec\dbo\meta\structure\IndexType;
 use n2n\spec\dbo\meta\structure\Table;
+use n2n\spec\dbo\meta\structure\BinaryColumn;
 
 class DboCacheEngineTest extends TestCase {
 	private Pdo $pdo;
@@ -43,9 +44,9 @@ class DboCacheEngineTest extends TestCase {
 		$table = $database->getMetaEntityByName('data');
 		assert($table instanceof Table);
 		$this->assertCount(3, $table->getColumns());
-		$this->assertInstanceOf(StringColumn::class, $table->getColumnByName('name'));
-		$this->assertInstanceOf(StringColumn::class, $table->getColumnByName('characteristics'));
-		$this->assertInstanceOf(StringColumn::class, $table->getColumnByName('data'));
+		$this->assertInstanceOf(BinaryColumn::class, $table->getColumnByName('name'));
+		$this->assertInstanceOf(BinaryColumn::class, $table->getColumnByName('characteristics'));
+		$this->assertInstanceOf(BinaryColumn::class, $table->getColumnByName('data'));
 
 		$indexes = $table->getIndexes();
 		$this->assertCount(2, $indexes);
@@ -73,9 +74,9 @@ class DboCacheEngineTest extends TestCase {
 		$table = $database->getMetaEntityByName('characteristic');
 		assert($table instanceof Table);
 		$this->assertCount(3, $table->getColumns());
-		$this->assertInstanceOf(StringColumn::class, $table->getColumnByName('name'));
-		$this->assertInstanceOf(StringColumn::class, $table->getColumnByName('characteristics'));
-		$this->assertInstanceOf(StringColumn::class, $table->getColumnByName('characteristic'));
+		$this->assertInstanceOf(BinaryColumn::class, $table->getColumnByName('name'));
+		$this->assertInstanceOf(BinaryColumn::class, $table->getColumnByName('characteristics'));
+		$this->assertInstanceOf(BinaryColumn::class, $table->getColumnByName('characteristic'));
 
 		$indexes = $table->getIndexes();
 		$this->assertCount(2, $indexes);
