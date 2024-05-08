@@ -87,7 +87,7 @@ class DboCacheStore implements CacheStore {
 		return $tablesCreated;
 	}
 
-	public function store(string $name, array $characteristics, mixed $data, \DateTime $lastMod = null): void {
+	public function store(string $name, array $characteristics, mixed $data, \DateTime $created = null, \DateInterval $ttl = null): void {
 		$this->tableCheckedCall(function () use (&$name, &$characteristics, &$data) {
 			$this->pdoCacheEngine->write($name, $characteristics, $data);
 		});
@@ -134,6 +134,9 @@ class DboCacheStore implements CacheStore {
 		$this->tableCheckedCall(function () use (&$name, &$characteristics) {
 			$this->pdoCacheEngine->clear();
 		});
+	}
+
+	public function garbageCollect(\DateInterval $ttl = null): void {
 	}
 }
 
