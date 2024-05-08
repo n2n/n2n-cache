@@ -41,7 +41,6 @@
         "n2n/n2n-impl-persistence-meta": "^7.4",
         "n2n/n2n-test": "^7.4",
         "ext-ctype": "*",
-        "ext-mbstring": "*",
-        "ext-igbinary": "*"
+        "ext-mbstring": "*"
 	}
 }
