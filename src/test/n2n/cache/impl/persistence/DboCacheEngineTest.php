@@ -501,6 +501,8 @@ class DboCacheEngineTest extends TestCase {
 	}
 
 	function testIgbinary(): void {
+		$this->markTestSkipped('CiBob does not support igbinary yet.');
+
 		$engine = $this->createEngine(igbinaryEnabled: true);
 
 		$engine->createDataTable();
