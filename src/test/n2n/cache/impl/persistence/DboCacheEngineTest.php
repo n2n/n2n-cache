@@ -25,8 +25,8 @@ class DboCacheEngineTest extends TestCase {
 		$this->pdoUtil = new DbTestPdoUtil($this->pdo);
 	}
 
-	private function createEngine(DboCacheDataSize $pdoCacheDataSize = DboCacheDataSize::STRING): DboCacheEngine {
-		return new DboCacheEngine($this->pdo, 'data', 'characteristic', $pdoCacheDataSize, false);
+	private function createEngine(DboCacheDataSize $pdoCacheDataSize = DboCacheDataSize::STRING, bool $igbinaryEnabled = false): DboCacheEngine {
+		return new DboCacheEngine($this->pdo, 'data', 'characteristic', $pdoCacheDataSize, $igbinaryEnabled);
 	}
 
 	/**
@@ -463,5 +463,61 @@ class DboCacheEngineTest extends TestCase {
 
 		$this->expectException(DuplicateMetaElementException::class);
 		$engine->createDataTable();
+	}
+
+	function testIgbinary(): void {
+		$engine = $this->createEngine(igbinaryEnabled: true);
+
+		$engine->createDataTable();
+		$engine->createCharacteristicTable();
+
+		$engine->write('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], 'data1');
+
+		$rows = $this->pdoUtil->select('data', null);
+		$this->assertCount(1, $rows);
+		$this->assertEquals(
+				['name' => 'holeradio', 'characteristics' => igbinary_serialize(['key' => 'value1', 'o-key' => 'o-value']),
+						'data' => igbinary_serialize('data1')],
+				$rows[0]);
+
+		$rows = $this->pdoUtil->select('characteristic', null);
+		$this->assertCount(2, $rows);
+		$this->assertEquals(
+				['name' => 'holeradio', 'characteristics' => igbinary_serialize(['key' => 'value1', 'o-key' => 'o-value']),
+						'characteristic' => igbinary_serialize(['key' => 'value1'])],
+				$rows[0]);
+		$this->assertEquals(
+				['name' => 'holeradio', 'characteristics' => igbinary_serialize(['key' => 'value1', 'o-key' => 'o-value']),
+						'characteristic' => igbinary_serialize(['o-key' => 'o-value'])],
+				$rows[1]);
+
+
+		$row = $engine->read('holeradio', ['key' => 'value1', 'o-key' => 'o-value']);
+		$this->assertNotNull($row);
+		$this->assertEquals('data1', $row['data']);
+
+		$engine->delete('holeradio', ['key' => 'value1', 'o-key' => 'o-value']);
+
+		$rows = $this->pdoUtil->select('data', null);
+		$this->assertCount(0, $rows);
+		$rows = $this->pdoUtil->select('characteristic', null);
+		$this->assertCount(0, $rows);
+
+		$engine->write('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], 'data1');
+		$rows = $this->pdoUtil->select('data', null);
+		$this->assertCount(1, $rows);
+		$rows = $this->pdoUtil->select('characteristic', null);
+		$this->assertCount(2, $rows);
+
+		$rows = $engine->findBy('holeradio', ['key' => 'value1']);
+		$this->assertCount(1, $rows);
+		$this->assertEquals('data1', $rows[0]['data']);
+
+		$engine->deleteBy('holeradio', ['o-key' => 'o-value']);
+
+		$rows = $this->pdoUtil->select('data', null);
+		$this->assertCount(0, $rows);
+		$rows = $this->pdoUtil->select('characteristic', null);
+		$this->assertCount(0, $rows);
 	}
 }

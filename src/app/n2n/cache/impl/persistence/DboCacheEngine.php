@@ -194,15 +194,23 @@ class DboCacheEngine {
 
 		$dataStr = $row[self::DATA_COLUMN];
 		try {
-			$row[self::DATA_COLUMN] = $dataStr === null ? [] : ($this->igbinaryEnabled
-					? BinaryUtils::igbinaryUnserialize($dataStr)
-					: StringUtils::unserialize($dataStr));
+			$row[self::DATA_COLUMN] =  ($this->igbinaryEnabled
+					? BinaryUtils::igbinaryUnserialize((string) $dataStr)
+					: StringUtils::unserialize((string) $dataStr));
 		} catch (UnserializationFailedException $e) {
 			throw new CorruptedCacheStoreException('Could not unserialize data for ' . $row[self::NAME_COLUMN]
 					. ': ' . StringUtils::reduce($dataStr, 25, '...'), previous: $e);
 		}
 
 		return $row;
+	}
+
+	private function serializeData(mixed $data): ?string {
+		if ($this->igbinaryEnabled) {
+			return igbinary_serialize($data);
+		}
+
+		return serialize($data);
 	}
 
 	private function serializeCharacteristics(?array $characteristics): ?string {
@@ -218,14 +226,14 @@ class DboCacheEngine {
 		return serialize($characteristics);
 	}
 
-	private static function splitAndSerializeCharacteristics(?array $characteristicNeedles): ?array {
+	private function splitAndSerializeCharacteristics(?array $characteristicNeedles): ?array {
 		if ($characteristicNeedles === null) {
 			return null;
 		}
 
 		$strs = [];
 		foreach ($characteristicNeedles as $key => $value) {
-			$strs[] = serialize([$key => $value]);
+			$strs[] = $this->igbinaryEnabled ? igbinary_serialize([$key => $value]) : serialize([$key => $value]);
 		}
 		return $strs;
 	}
@@ -254,7 +262,7 @@ class DboCacheEngine {
 
 	function deleteBy(?string $nameNeedle, ?array $characteristicNeedles): void {
 		$characteristicsStr = $this->serializeCharacteristics($characteristicNeedles);
-		$characteristicNeedleStrs = self::splitAndSerializeCharacteristics($characteristicNeedles);
+		$characteristicNeedleStrs = $this->splitAndSerializeCharacteristics($characteristicNeedles);
 
 		$this->execInTransaction(function () use (&$nameNeedle, &$characteristicsStr, &$characteristicNeedleStrs) {
 			$this->deleteFromDataTable($nameNeedle, $characteristicsStr);
@@ -280,7 +288,7 @@ class DboCacheEngine {
 
 	function findBy(?string $nameNeedle, ?array $characteristicNeedles): array {
 		$characteristicsStr = $this->serializeCharacteristics($characteristicNeedles);
-		$characteristicNeedleStrs = self::splitAndSerializeCharacteristics($characteristicNeedles);
+		$characteristicNeedleStrs = $this->splitAndSerializeCharacteristics($characteristicNeedles);
 
 		$rows = [];
 		$this->execInTransaction(function ()
@@ -312,7 +320,7 @@ class DboCacheEngine {
 
 	function write(string $name, array $characteristics, mixed $data): void {
 		$characteristicsStr = $this->serializeCharacteristics($characteristics);
-		$dataStr = serialize($data);
+		$dataStr = $this->serializeData($data);
 
 		$this->execInTransaction(function () use (&$name, &$characteristicsStr, &$dataStr, &$characteristics) {
 			$this->deleteFromDataTable($name, $characteristicsStr);
