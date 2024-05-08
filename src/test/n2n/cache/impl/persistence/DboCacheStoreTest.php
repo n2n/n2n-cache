@@ -12,7 +12,6 @@ class DboCacheStoreTest extends TestCase {
 	private Pdo $pdo;
 	private DbTestPdoUtil $pdoUtil;
 
-
 	function setUp(): void {
 		$config = new PersistenceUnitConfig('holeradio', 'sqlite::memory:', '', '',
 				PersistenceUnitConfig::TIL_SERIALIZABLE, SqliteDialect::class);
@@ -121,6 +120,7 @@ class DboCacheStoreTest extends TestCase {
 		$store->clear();
 		$this->assertCount(0, $this->pdoUtil->select('cached_data', null));
 	}
+
 
 //
 //	function testTableCreate() {

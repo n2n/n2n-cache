@@ -5,6 +5,8 @@ use n2n\util\cache\CacheStore;
 use n2n\util\cache\CacheItem;
 use n2n\persistence\Pdo;
 use n2n\persistence\PdoException;
+use n2n\spec\dbo\err\DboException;
+use n2n\util\cache\CacheStoreOperationFailedException;
 
 class DboCacheStore implements CacheStore {
 	private string $dataTableName = 'cached_data';
@@ -80,9 +82,9 @@ class DboCacheStore implements CacheStore {
 
 		try {
 			return $closure();
-		} catch (PdoException $e) {
+		} catch (DboException $e) {
 			if (!$this->tableAutoCreated || !$this->checkTables()) {
-				throw $e;
+				throw new CacheStoreOperationFailedException($e->getMessage(), previous: $e);
 			}
 
 			return $closure();
@@ -107,13 +109,19 @@ class DboCacheStore implements CacheStore {
 
 	public function store(string $name, array $characteristics, mixed $data, \DateInterval $ttl = null,
 			\DateTimeInterface $now = null): void {
-		$this->tableCheckedCall(function () use (&$name, &$characteristics, &$data) {
-			$this->pdoCacheEngine->write($name, $characteristics, $data);
-		});
+		$expiresAt = null;
+		if ($ttl !== null) {
+			$expiresAt = ($now ?? new \DateTime())->add($ttl)->getTimestamp();
+		}
+
+		$this->tableCheckedCall(/** @throws DboException */ function ()
+					use (&$name, &$characteristics, &$data, &$expiresAt) {
+				$this->pdoCacheEngine->write($name, $characteristics, $data, $expiresAt);
+			});
 	}
 
 	public function get(string $name, array $characteristics, \DateTimeInterface $now = null): ?CacheItem {
-		$result = $this->tableCheckedCall(function () use (&$name, &$characteristics) {
+		$result = $this->tableCheckedCall(/** @throws DboException */ function () use (&$name, &$characteristics) {
 			return $this->pdoCacheEngine->read($name, $characteristics);
 		});
 
@@ -130,13 +138,13 @@ class DboCacheStore implements CacheStore {
 	}
 
 	public function remove(string $name, array $characteristics): void {
-		$this->tableCheckedCall(function () use (&$name, &$characteristics) {
+		$this->tableCheckedCall(/** @throws DboException */ function () use (&$name, &$characteristics) {
 			$this->pdoCacheEngine->delete($name, $characteristics);
 		});
 	}
 
 	public function findAll(string $name, array $characteristicNeedles = null, \DateTimeInterface $now = null): array {
-		$results = $this->tableCheckedCall(function () use (&$name, &$characteristics) {
+		$results = $this->tableCheckedCall(/** @throws DboException */ function () use (&$name, &$characteristics) {
 			return $this->pdoCacheEngine->findBy($name, $characteristics);
 		});
 
@@ -144,18 +152,23 @@ class DboCacheStore implements CacheStore {
 	}
 
 	public function removeAll(?string $name, array $characteristicNeedles = null): void {
-		$this->tableCheckedCall(function () use (&$name, &$characteristics) {
+		$this->tableCheckedCall(/** @throws DboException */ function () use (&$name, &$characteristics) {
 			$this->pdoCacheEngine->deleteBy($name, $characteristics);
 		});
 	}
 
 	public function clear(): void {
-		$this->tableCheckedCall(function () use (&$name, &$characteristics) {
+		$this->tableCheckedCall(/** @throws DboException */ function () use (&$name, &$characteristics) {
 			$this->pdoCacheEngine->clear();
 		});
 	}
 
 	public function garbageCollect(\DateInterval $maxLifetime = null, \DateTimeInterface $now = null): void {
+		$expiresByTime = $now ?? new \DateTime();
+
+		$this->tableCheckedCall(/** @throws DboException */ function () use (&$expiredByTime) {
+			$this->pdoCacheEngine->deleteExpiredBy($expiredByTime);
+		});
 	}
 }
 
