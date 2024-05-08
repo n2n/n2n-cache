@@ -11,6 +11,7 @@ use n2n\util\type\ArgUtils;
 use n2n\spec\dbo\meta\data\impl\QueryItems;
 use n2n\spec\dbo\Dbo;
 use n2n\spec\dbo\meta\structure\IndexType;
+use n2n\util\BinaryUtils;
 
 class DboCacheEngine {
 	const NAME_COLUMN = 'name';
@@ -28,7 +29,8 @@ class DboCacheEngine {
 	private ?string $characteristicDeleteSql = null;
 
 	function __construct(private readonly Dbo $dbo, private readonly string $dataTableName,
-			private readonly string $characteristicTableName, private readonly DboCacheDataSize $pdoCacheDataSize) {
+			private readonly string $characteristicTableName, private readonly DboCacheDataSize $pdoCacheDataSize,
+			private readonly bool $igbinaryEnabled) {
 	}
 
 	private function dataSelectSql(bool $nameIncluded, bool $characteristicsIncluded): string {
@@ -180,9 +182,11 @@ class DboCacheEngine {
 		return self::unserializeResult($rows[0]);
 	}
 
-	private static function unserializeResult(array $row): array {
+	private function unserializeResult(array $row): array {
 		try {
-			$row[self::CHARACTERISTICS_COLUMN] = StringUtils::unserialize($row[self::CHARACTERISTICS_COLUMN]);
+			$row[self::CHARACTERISTICS_COLUMN] = ($this->igbinaryEnabled
+					? BinaryUtils::igbinaryUnserialize($row[self::CHARACTERISTICS_COLUMN])
+					: StringUtils::unserialize($row[self::CHARACTERISTICS_COLUMN]));
 		} catch (UnserializationFailedException $e) {
 			throw new CorruptedCacheStoreException('Could not unserialize characteristics for '
 					. $row[self::NAME_COLUMN] . ': ' . $row[self::CHARACTERISTICS_COLUMN], previous: $e);
@@ -190,7 +194,9 @@ class DboCacheEngine {
 
 		$dataStr = $row[self::DATA_COLUMN];
 		try {
-			$row[self::DATA_COLUMN] = ($dataStr === null ? [] : StringUtils::unserialize($dataStr));
+			$row[self::DATA_COLUMN] = $dataStr === null ? [] : ($this->igbinaryEnabled
+					? BinaryUtils::igbinaryUnserialize($dataStr)
+					: StringUtils::unserialize($dataStr));
 		} catch (UnserializationFailedException $e) {
 			throw new CorruptedCacheStoreException('Could not unserialize data for ' . $row[self::NAME_COLUMN]
 					. ': ' . StringUtils::reduce($dataStr, 25, '...'), previous: $e);
@@ -199,10 +205,15 @@ class DboCacheEngine {
 		return $row;
 	}
 
-	private static function serializeCharacteristics(?array $characteristics): ?string {
+	private function serializeCharacteristics(?array $characteristics): ?string {
 		if ($characteristics === null) {
 			return null;
 		}
+
+		if ($this->igbinaryEnabled) {
+			return igbinary_serialize($characteristics);
+		}
+
 
 		return serialize($characteristics);
 	}
@@ -233,7 +244,7 @@ class DboCacheEngine {
 	}
 
 	function delete(string $name, array $characteristics): void {
-		$characteristicsStr = self::serializeCharacteristics($characteristics);
+		$characteristicsStr = $this->serializeCharacteristics($characteristics);
 
 		$this->execInTransaction(function () use ($name, $characteristicsStr) {
 			$this->deleteFromDataTable($name, $characteristicsStr);
@@ -242,7 +253,7 @@ class DboCacheEngine {
 	}
 
 	function deleteBy(?string $nameNeedle, ?array $characteristicNeedles): void {
-		$characteristicsStr = self::serializeCharacteristics($characteristicNeedles);
+		$characteristicsStr = $this->serializeCharacteristics($characteristicNeedles);
 		$characteristicNeedleStrs = self::splitAndSerializeCharacteristics($characteristicNeedles);
 
 		$this->execInTransaction(function () use (&$nameNeedle, &$characteristicsStr, &$characteristicNeedleStrs) {
@@ -268,7 +279,7 @@ class DboCacheEngine {
 	}
 
 	function findBy(?string $nameNeedle, ?array $characteristicNeedles): array {
-		$characteristicsStr = self::serializeCharacteristics($characteristicNeedles);
+		$characteristicsStr = $this->serializeCharacteristics($characteristicNeedles);
 		$characteristicNeedleStrs = self::splitAndSerializeCharacteristics($characteristicNeedles);
 
 		$rows = [];
@@ -300,7 +311,7 @@ class DboCacheEngine {
 	}
 
 	function write(string $name, array $characteristics, mixed $data): void {
-		$characteristicsStr = self::serializeCharacteristics($characteristics);
+		$characteristicsStr = $this->serializeCharacteristics($characteristics);
 		$dataStr = serialize($data);
 
 		$this->execInTransaction(function () use (&$name, &$characteristicsStr, &$dataStr, &$characteristics) {
@@ -349,7 +360,7 @@ class DboCacheEngine {
 		$stmt = $this->dbo->prepare($this->characteristicInsertSql());
 		foreach ($characteristics as $key => $value) {
 			$stmt->execute([self::NAME_COLUMN => $name, self::CHARACTERISTICS_COLUMN => $characteristicsStr,
-					self::CHARACTERISTIC_COLUMN => self::serializeCharacteristics([$key => $value])]);
+					self::CHARACTERISTIC_COLUMN => $this->serializeCharacteristics([$key => $value])]);
 		}
 	}
 

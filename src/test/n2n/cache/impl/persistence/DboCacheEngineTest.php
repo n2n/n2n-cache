@@ -26,9 +26,12 @@ class DboCacheEngineTest extends TestCase {
 	}
 
 	private function createEngine(DboCacheDataSize $pdoCacheDataSize = DboCacheDataSize::STRING): DboCacheEngine {
-		return new DboCacheEngine($this->pdo, 'data', 'characteristic', $pdoCacheDataSize);
+		return new DboCacheEngine($this->pdo, 'data', 'characteristic', $pdoCacheDataSize, false);
 	}
 
+	/**
+	 * @throws DboException
+	 */
 	function testCreateDataTable(): void {
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('data'));
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('characteristic'));

@@ -10,6 +10,7 @@ class DboCacheStore implements CacheStore {
 	private string $dataTableName = 'cached_data';
 	private string $characteristicTableName = 'cached_characteristic';
 	private DboCacheDataSize $pdoCacheDataSize = DboCacheDataSize::TEXT;
+	private bool $igbinaryEnabled = false;
 	private bool $tableAutoCreated = true;
 	private ?DboCacheEngine $pdoCacheEngine = null;
 
@@ -54,10 +55,26 @@ class DboCacheStore implements CacheStore {
 		return $this;
 	}
 
+	public function isIgbinaryEnabled(): bool {
+		return $this->igbinaryEnabled;
+	}
+
+	/**
+	 * If true {@link \igbinary_serialize()} will be used.
+	 *
+	 * @param bool $igbinaryEnabled
+	 * @return $this
+	 */
+	public function setIgbinaryEnabled(bool $igbinaryEnabled): static {
+		$this->igbinaryEnabled = $igbinaryEnabled;
+		$this->pdoCacheEngine = null;
+		return $this;
+	}
+
 	private function tableCheckedCall(\Closure $closure): mixed {
 		if ($this->pdoCacheEngine === null) {
 			$this->pdoCacheEngine = new DboCacheEngine($this->pdo, $this->dataTableName, $this->characteristicTableName,
-					$this->pdoCacheDataSize);
+					$this->pdoCacheDataSize, $this->igbinaryEnabled);
 		}
 
 		try {
@@ -87,13 +104,14 @@ class DboCacheStore implements CacheStore {
 		return $tablesCreated;
 	}
 
-	public function store(string $name, array $characteristics, mixed $data, \DateTime $created = null, \DateInterval $ttl = null): void {
+	public function store(string $name, array $characteristics, mixed $data, \DateInterval $ttl = null,
+			\DateTimeInterface $now = null): void {
 		$this->tableCheckedCall(function () use (&$name, &$characteristics, &$data) {
 			$this->pdoCacheEngine->write($name, $characteristics, $data);
 		});
 	}
 
-	public function get(string $name, array $characteristics): ?CacheItem {
+	public function get(string $name, array $characteristics, \DateTimeInterface $now = null): ?CacheItem {
 		$result = $this->tableCheckedCall(function () use (&$name, &$characteristics) {
 			return $this->pdoCacheEngine->read($name, $characteristics);
 		});
@@ -116,7 +134,7 @@ class DboCacheStore implements CacheStore {
 		});
 	}
 
-	public function findAll(string $name, array $characteristicNeedles = null): array {
+	public function findAll(string $name, array $characteristicNeedles = null, \DateTimeInterface $now = null): array {
 		$results = $this->tableCheckedCall(function () use (&$name, &$characteristics) {
 			return $this->pdoCacheEngine->findBy($name, $characteristics);
 		});
@@ -136,7 +154,7 @@ class DboCacheStore implements CacheStore {
 		});
 	}
 
-	public function garbageCollect(\DateInterval $ttl = null): void {
+	public function garbageCollect(\DateInterval $maxLifetime = null, \DateTimeInterface $now = null): void {
 	}
 }
 
