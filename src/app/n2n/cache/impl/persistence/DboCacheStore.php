@@ -39,6 +39,7 @@ class DboCacheStore implements CacheStore {
 
 	public function setPdoCacheDataSize(DboCacheDataSize $pdoCacheDataSize): DboCacheStore {
 		$this->pdoCacheDataSize = $pdoCacheDataSize;
+		$this->pdoCacheEngine = null;
 		return $this;
 	}
 
