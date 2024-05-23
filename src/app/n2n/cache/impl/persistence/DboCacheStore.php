@@ -170,10 +170,18 @@ class DboCacheStore implements CacheStore {
 	}
 
 	public function garbageCollect(\DateInterval $maxLifetime = null, \DateTimeInterface $now = null): void {
-		$expiresByTime = $now ?? new \DateTime();
+		$now ??= new \DateTime();
+		$this->tableCheckedCall(/** @throws DboException */ function() use (&$now) {
+			$this->pdoCacheEngine->deleteExpiredByTime($now->getTimestamp());
+		});
 
-		$this->tableCheckedCall(/** @throws DboException */ function () use (&$expiredByTime) {
-			$this->pdoCacheEngine->deleteExpiredBy($expiredByTime);
+		if ($maxLifetime === null) {
+			return;
+		}
+
+		$createdBy = $now->sub($maxLifetime);
+		$this->tableCheckedCall(/** @throws DboException */ function() use (&$createdBy) {
+			$this->pdoCacheEngine->deleteCreatedByTime($createdBy->getTimestamp());
 		});
 	}
 }

@@ -85,17 +85,16 @@ class DboCacheEngine {
 	}
 
 	private function dataDeleteSql(bool $nameIncluded, bool $characteristicsIncluded,
-			bool $createdEarlierThanTimeIncluded, bool $expiredByTimeIncluded): string {
+			bool $createdByTimeIncluded, bool $expiredByTimeIncluded): string {
 		if ($this->dataDeleteSql !== null && $nameIncluded && $characteristicsIncluded &&
-				!$createdEarlierThanTimeIncluded && !$expiredByTimeIncluded) {
+				!$createdByTimeIncluded && !$expiredByTimeIncluded) {
 			return $this->dataDeleteSql;
 		}
 
 		$sql = $this->commonDeleteSql($this->dataTableName, $nameIncluded, $characteristicsIncluded,
-				$createdEarlierThanTimeIncluded, $expiredByTimeIncluded);
+				$createdByTimeIncluded, $expiredByTimeIncluded);
 
-		if ($nameIncluded && $characteristicsIncluded &&
-				!$createdEarlierThanTimeIncluded && !$expiredByTimeIncluded) {
+		if ($nameIncluded && $characteristicsIncluded && !$createdByTimeIncluded && !$expiredByTimeIncluded) {
 			return $this->dataDeleteSql = $sql;
 		}
 
@@ -151,16 +150,16 @@ class DboCacheEngine {
 	}
 
 	private function characteristicDeleteSql(bool $nameIncluded, bool $characteristicsIncluded,
-			bool $createdEarlierThanTimeIncluded, bool $expiredByTimeIncluded): string {
+			bool $createdByTimeIncluded, bool $expiredByTimeIncluded): string {
 		if ($this->characteristicDeleteSql !== null && $nameIncluded && $characteristicsIncluded &&
-				!$createdEarlierThanTimeIncluded && !$expiredByTimeIncluded) {
+				!$createdByTimeIncluded && !$expiredByTimeIncluded) {
 			return $this->characteristicDeleteSql;
 		}
 
 		$sql = $this->commonDeleteSql($this->characteristicTableName, $nameIncluded, $characteristicsIncluded,
-				$createdEarlierThanTimeIncluded, $expiredByTimeIncluded);
+				$createdByTimeIncluded, $expiredByTimeIncluded);
 
-		if ($nameIncluded && $characteristicsIncluded && !$createdEarlierThanTimeIncluded && !$expiredByTimeIncluded) {
+		if ($nameIncluded && $characteristicsIncluded && !$createdByTimeIncluded && !$expiredByTimeIncluded) {
 			return $this->characteristicDeleteSql = $sql;
 		}
 
@@ -168,7 +167,7 @@ class DboCacheEngine {
 	}
 
 	private function commonDeleteSql(string $tableName, bool $nameIncluded, bool $characteristicsIncluded,
-			bool $createdEarlierThanTimeIncluded, bool $expiredByTimeIncluded): string {
+			bool $createdByTimeIncluded, bool $expiredByTimeIncluded): string {
 		$builder = $this->dbo->createDeleteStatementBuilder();
 		$builder->setTable($tableName);
 		$comparator = $builder->getWhereComparator();
@@ -183,13 +182,13 @@ class DboCacheEngine {
 					QueryItems::placeMarker(self::CHARACTERISTICS_COLUMN));
 		}
 
-		if ($createdEarlierThanTimeIncluded) {
-			$comparator->andMatch(QueryItems::column(self::CREATED_AT_COLUMN), '<',
+		if ($createdByTimeIncluded) {
+			$comparator->andMatch(QueryItems::column(self::CREATED_AT_COLUMN), '<=',
 					QueryItems::placeMarker(self::CREATED_AT_COLUMN));
 		}
 
 		if ($expiredByTimeIncluded) {
-			$comparator->andMatch(QueryItems::column(self::EXPIRES_AT_COLUMN), '<=',
+			$comparator->andMatch(QueryItems::column(self::EXPIRES_AT_COLUMN), '>=',
 					QueryItems::placeMarker(self::EXPIRES_AT_COLUMN));
 		}
 
@@ -208,7 +207,7 @@ class DboCacheEngine {
 		}
 
 		if ($this->checkIfRowIsExpired($rows[0], $expiredByTime)) {
-			$this->deleteExpiredBy($expiredByTime);
+			$this->deleteExpiredByTime($expiredByTime);
 			return null;
 		}
 
@@ -303,20 +302,20 @@ class DboCacheEngine {
 	/**
 	 * @throws DboException
 	 */
-	function deleteExpiredBy(int $time): void {
-		$this->execInTransaction(function () use ($time) {
-			$this->deleteFromDataTable(null, null, null, $time);
-			$this->deleteFromCharacteristicTable(null, null, null, $time);
+	function deleteExpiredByTime(int $expiredByTime): void {
+		$this->execInTransaction(function () use ($expiredByTime) {
+			$this->deleteFromDataTable(null, null, null, $expiredByTime);
+			$this->deleteFromCharacteristicTable(null, null, null, $expiredByTime);
 		}, false);
 	}
 
 	/**
 	 * @throws DboException
 	 */
-	function deleteCreatedBefore(int $time): void {
-		$this->execInTransaction(function () use ($time) {
-			$this->deleteFromDataTable(null, null, $time, null);
-			$this->deleteFromCharacteristicTable(null, null, $time, null);
+	function deleteCreatedByTime(int $createdByTime): void {
+		$this->execInTransaction(function () use ($createdByTime) {
+			$this->deleteFromDataTable(null, null, $createdByTime, null);
+			$this->deleteFromCharacteristicTable(null, null, $createdByTime, null);
 		}, false);
 	}
 
@@ -380,7 +379,7 @@ class DboCacheEngine {
 		$notExpiredRows = array_filter($rows, fn ($row) => !$this->checkIfRowIsExpired($row, $expiredByTime));
 
 		if (count($notExpiredRows) !== count($rows)) {
-			$this->deleteExpiredBy($expiredByTime);
+			$this->deleteExpiredByTime($expiredByTime);
 		}
 
 		return array_map(fn ($notExpiredRow) => self::unserializeResult($notExpiredRow), $notExpiredRows);
@@ -420,14 +419,19 @@ class DboCacheEngine {
 	/**
 	 * @throws DboException
 	 */
-	private function deleteFromDataTable(?string $name, ?string $characteristicsStr, ?int $createdEarlierThanTime,
+	private function deleteFromDataTable(?string $name, ?string $characteristicsStr, ?int $createdByTime,
 			?int $expiredByTime): void {
+		var_dump($this->dataDeleteSql($name !== null, $characteristicsStr !== null,
+				$createdByTime!== null, $expiredByTime !== null));
+		var_dump(ArrayUtils::filterNotNull(
+				[self::NAME_COLUMN => $name, self::CHARACTERISTICS_COLUMN => $characteristicsStr,
+						self::CREATED_AT_COLUMN => $createdByTime, self::EXPIRES_AT_COLUMN => $expiredByTime]));
 		$stmt = $this->dbo->prepare($this->dataDeleteSql($name !== null, $characteristicsStr !== null,
-				$createdEarlierThanTime!== null, $expiredByTime !== null));
+				$createdByTime!== null, $expiredByTime !== null));
 
 		$stmt->execute(ArrayUtils::filterNotNull(
 				[self::NAME_COLUMN => $name, self::CHARACTERISTICS_COLUMN => $characteristicsStr,
-						self::CREATED_AT_COLUMN => $createdEarlierThanTime, self::EXPIRES_AT_COLUMN => $expiredByTime]));
+						self::CREATED_AT_COLUMN => $createdByTime, self::EXPIRES_AT_COLUMN => $expiredByTime]));
 	}
 
 	/**
@@ -462,12 +466,12 @@ class DboCacheEngine {
 	 * @throws DboException
 	 */
 	private function deleteFromCharacteristicTable(?string $name, ?string $characteristicsStr,
-			?int $createdEarlierThanTime, ?int $expiredByTime): void {
+			?int $createdByTime, ?int $expiredByTime): void {
 		$stmt = $this->dbo->prepare($this->characteristicDeleteSql($name !== null,$characteristicsStr !== null,
-				$createdEarlierThanTime !== null, $expiredByTime !== null));
+				$createdByTime !== null, $expiredByTime !== null));
 		$stmt->execute(ArrayUtils::filterNotNull([self::NAME_COLUMN => $name,
 				self::CHARACTERISTICS_COLUMN => $characteristicsStr,
-				self::CREATED_AT_COLUMN => $createdEarlierThanTime, self::EXPIRES_AT_COLUMN => $expiredByTime]));
+				self::CREATED_AT_COLUMN => $createdByTime, self::EXPIRES_AT_COLUMN => $expiredByTime]));
 	}
 
 	/**

@@ -553,6 +553,87 @@ class DboCacheEngineTest extends TestCase {
 		$engine->createDataTable();
 	}
 
+	/**
+	 * @throws DboException
+	 */
+	function testExpired(): void {
+		$engine = $this->createEngine();
+		$time = time();
+		$futureTime = $time + 1000;
+		$future2Time = $time + 2000;
+
+		$engine->createDataTable();
+		$engine->createCharacteristicTable();
+
+		$engine->write('holeradio1', ['key' => 'value1', 'o-key' => 'o-value'], 'data1', $time, null);
+		$engine->write('holeradio-expired1', ['key' => 'value-expired', 'o-key' => 'o-value-expired'], 'data-expired1', $time, $futureTime);
+		$engine->write('holeradio-expired2', ['key' => 'value-expired', 'o-key' => 'o-value-expired'], 'data-expired2', $time, $future2Time);
+		$engine->write('holeradio2', ['key' => 'value2', 'o-key' => 'o-value'], 'data2', $futureTime, null);
+		$engine->write('holeradio3', ['key' => 'value3', 'o-key' => 'o-value'], 'data3', $future2Time, null);
+
+		$this->assertCount(5, $this->pdoUtil->select('data', null));
+		$this->assertCount(10, $this->pdoUtil->select('characteristic', null));
+
+		$engine->deleteExpiredByTime($futureTime);
+
+		$rows = $this->pdoUtil->select('data', null);
+		$this->assertCount(3, $rows);
+		$this->assertEquals('holeradio1', $rows[0]['name']);
+		$this->assertEquals('holeradio2', $rows[1]['name']);
+		$this->assertEquals('holeradio3', $rows[2]['name']);
+
+		$rows = $this->pdoUtil->select('characteristic', null);
+		$this->assertCount(6, $rows);
+		$this->assertEquals(serialize(['key' => 'value1']), $rows[0]['characteristic']);
+		$this->assertEquals(serialize(['o-key' => 'o-value']), $rows[1]['characteristic']);
+		$this->assertEquals(serialize(['key' => 'value2']), $rows[2]['characteristic']);
+		$this->assertEquals(serialize(['o-key' => 'o-value']), $rows[3]['characteristic']);
+		$this->assertEquals(serialize(['key' => 'value3']), $rows[4]['characteristic']);
+		$this->assertEquals(serialize(['o-key' => 'o-value']), $rows[5]['characteristic']);
+	}
+
+	/**
+	 * @throws DboException
+	 */
+	function testCreated(): void {
+		$engine = $this->createEngine();
+		$time = time();
+		$pastTime = $time - 1000;
+		$past2Time = $time - 2000;
+
+		$engine->createDataTable();
+		$engine->createCharacteristicTable();
+
+		$engine->write('holeradio1', ['key' => 'value1', 'o-key' => 'o-value'], 'data1', $time, null);
+		$engine->write('holeradio-expired1', ['key' => 'value-expired', 'o-key' => 'o-value-expired'], 'data-expired1', $pastTime, null);
+		$engine->write('holeradio-expired2', ['key' => 'value-expired', 'o-key' => 'o-value-expired'], 'data-expired2', $past2Time, $time);
+		$engine->write('holeradio2', ['key' => 'value2', 'o-key' => 'o-value'], 'data2', $time, $pastTime);
+		$engine->write('holeradio3', ['key' => 'value3', 'o-key' => 'o-value'], 'data3', $time, $past2Time);
+
+		$this->assertCount(5, $this->pdoUtil->select('data', null));
+		$this->assertCount(10, $this->pdoUtil->select('characteristic', null));
+
+		$engine->deleteCreatedByTime($pastTime);
+
+		$rows = $this->pdoUtil->select('data', null);
+		$this->assertCount(3, $rows);
+		$this->assertEquals('holeradio1', $rows[0]['name']);
+		$this->assertEquals('holeradio2', $rows[1]['name']);
+		$this->assertEquals('holeradio3', $rows[2]['name']);
+
+		$rows = $this->pdoUtil->select('characteristic', null);
+		$this->assertCount(6, $rows);
+		$this->assertEquals(serialize(['key' => 'value1']), $rows[0]['characteristic']);
+		$this->assertEquals(serialize(['o-key' => 'o-value']), $rows[1]['characteristic']);
+		$this->assertEquals(serialize(['key' => 'value2']), $rows[2]['characteristic']);
+		$this->assertEquals(serialize(['o-key' => 'o-value']), $rows[3]['characteristic']);
+		$this->assertEquals(serialize(['key' => 'value3']), $rows[4]['characteristic']);
+		$this->assertEquals(serialize(['o-key' => 'o-value']), $rows[5]['characteristic']);
+	}
+
+	/**
+	 * @throws DboException
+	 */
 	function testIgbinary(): void {
 		$this->markTestSkipped('CiBob does not support igbinary yet.');
 
