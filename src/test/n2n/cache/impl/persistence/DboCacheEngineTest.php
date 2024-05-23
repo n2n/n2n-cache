@@ -693,25 +693,59 @@ class DboCacheEngineTest extends TestCase {
 		$this->assertCount(0, $rows);
 	}
 
-//	/**
-//	 * @throws DboException
-//	 */
-//	function testCachedSelectSql(): void {
-//		$engine = $this->createEngine(igbinaryEnabled: true);
-//
-//		$engine->createDataTable();
-//		$engine->createCharacteristicTable();
-//
-//		$time = time();
-//		$time2 = $time + 1000;
-//
-//		$engine->write('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], 'data1', $time);
-//		$engine->write('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], 'data1', $time2);
-//
-//		$this->assertCount(2, $engine->findBy('holeradio', ['key' => 'value1', 'o-key' => 'o-value']));
-//		$this->assertCount(2, $engine->read('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], $time));
-//
-//
-//
-//	}
+	/**
+	 * @throws DboException
+	 */
+	function testCachedSelectSql(): void {
+		$engine = $this->createEngine(igbinaryEnabled: true);
+
+		$engine->createDataTable();
+		$engine->createCharacteristicTable();
+
+		$time = time();
+
+		$engine->write('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], 'data1', $time, null);
+		$engine->write('holeradio', ['key' => 'value2', 'o-key' => 'o-value'], 'data1', $time, null);
+
+		for ($i = 0; $i < 3; $i++) {
+			$this->assertCount(1, $engine->findBy('holeradio', ['key' => 'value1'], $time));
+			$this->assertCount(2, $engine->findBy('holeradio', ['o-key' => 'o-value'], $time));
+			$this->assertEquals('holeradio', $engine->read('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], $time)['name']);
+		}
+	}
+
+	function testCachedDeleteSql(): void {
+		$engine = $this->createEngine(igbinaryEnabled: true);
+
+		$engine->createDataTable();
+		$engine->createCharacteristicTable();
+
+		$time = time();
+		$future = $time + 10;
+
+		for ($i = 0; $i < 3; $i++) {
+			$engine->write('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], 'data1', $time, null);
+			$engine->write('holeradio2', ['key' => 'value2', 'o-key' => 'o-value'], 'data1', $time, null);
+			$engine->write('holeradio', ['key' => 'value2', 'o-key' => 'o-value-diff'], 'data1', $time, null);
+			$engine->write('holeradio', ['key' => 'value2', 'o-key' => 'o-value-diff2'], 'data1', $future, null);
+
+			$this->assertCount(4, $this->pdoUtil->select('data', null));
+
+			$engine->deleteBy(null, ['key' => 'value1']);
+
+			$this->assertCount(3, $this->pdoUtil->select('data', null));
+
+			$engine->deleteBy('holeradio2', null);
+
+			$this->assertCount(2, $this->pdoUtil->select('data', null));
+
+			$engine->deleteCreatedByTime($time);
+
+			$this->assertCount(1, $this->pdoUtil->select('data', null));
+
+			$engine->delete('holeradio', ['key' => 'value2', 'o-key' => 'o-value-diff2']);
+
+			$this->assertCount(0, $this->pdoUtil->select('data', null));
+		}
+	}
 }
