@@ -39,7 +39,7 @@ class DboCacheEngine {
 			return $this->dataSelectSql;
 		}
 
-		$builder = $this->dbo->createSelectStatementBuilder($this->dbo);
+		$builder = $this->dbo->createSelectStatementBuilder();
 		$builder->addFrom(QueryItems::table($this->dataTableName, 'd'));
 		$comparator = $builder->getWhereComparator();
 
@@ -64,12 +64,12 @@ class DboCacheEngine {
 		return $builder->toSqlString();
 	}
 
-	private function itemInsertSql(): string {
+	private function dataUpsertSql(): string {
 		if ($this->itemInsertSql !== null) {
 			return $this->itemInsertSql;
 		}
 
-		$builder = $this->dbo->createInsertStatementBuilder($this->dbo);
+		$builder = $this->dbo->createInsertStatementBuilder();
 		$builder->setTable($this->dataTableName);
 		$builder->addColumn(QueryItems::column(self::NAME_COLUMN, 'd'),
 				QueryItems::placeMarker(self::NAME_COLUMN));
@@ -79,11 +79,13 @@ class DboCacheEngine {
 				QueryItems::placeMarker(self::DATA_COLUMN));
 		$builder->addColumn(QueryItems::column(self::EXPIRES_AT_COLUMN),
 				QueryItems::placeMarker(self::EXPIRES_AT_COLUMN));
+		$builder->setUpsertUniqueColumns([QueryItems::column(self::NAME_COLUMN, 'd'),
+				QueryItems::column(self::CHARACTERISTICS_COLUMN, 'd')]);
 
 		return $this->itemInsertSql = $builder->toSqlString();
 	}
 
-	private function itemDeleteSql(bool $nameIncluded, bool $characteristicsIncluded, bool $expiredByTimeIncluded): string {
+	private function dataDeleteSql(bool $nameIncluded, bool $characteristicsIncluded, bool $expiredByTimeIncluded): string {
 		if ($this->itemDeleteSql !== null && $nameIncluded && $characteristicsIncluded) {
 			return $this->itemDeleteSql;
 		}
@@ -373,9 +375,8 @@ class DboCacheEngine {
 		$dataStr = $this->serializeData($data);
 
 		$this->execInTransaction(function () use (&$name, &$characteristicsStr, &$dataStr, &$characteristics, &$expiresAt) {
-			$this->deleteFromDataTable($name, $characteristicsStr,null);
+			$this->upsertIntoDataTable($name, $characteristicsStr, $dataStr, $expiresAt);
 			$this->deleteFromCharacteristicTable($name, $characteristicsStr, null);
-			$this->insertIntoDataTable($name, $characteristicsStr, $dataStr, $expiresAt);
 			if (count($characteristics) > 1) {
 				$this->insertIntoCharacteristicTable($name, $characteristicsStr, $characteristics, $expiresAt);
 			}
@@ -386,7 +387,7 @@ class DboCacheEngine {
 	 * @throws DboException
 	 */
 	private function deleteFromDataTable(?string $name, ?string $characteristicsStr, ?int $expiredByTime): void {
-		$stmt = $this->dbo->prepare($this->itemDeleteSql($name !== null, $characteristicsStr !== null,
+		$stmt = $this->dbo->prepare($this->dataDeleteSql($name !== null, $characteristicsStr !== null,
 				$expiredByTime !== null));
 
 		$stmt->execute(ArrayUtils::filterNotNull(
@@ -397,8 +398,8 @@ class DboCacheEngine {
 	/**
 	 * @throws DboException
 	 */
-	private function insertIntoDataTable(string $name, string $characteristicsStr, ?string $dataStr, ?int $expiresAt): void {
-		$stmt = $this->dbo->prepare($this->itemInsertSql());
+	private function upsertIntoDataTable(string $name, string $characteristicsStr, ?string $dataStr, ?int $expiresAt): void {
+		$stmt = $this->dbo->prepare($this->dataUpsertSql());
 
 		$stmt->execute([
 			self::NAME_COLUMN => $name,

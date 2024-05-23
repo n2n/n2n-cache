@@ -176,6 +176,9 @@ class DboCacheEngineTest extends TestCase {
 		$this->assertCount(0, $this->pdoUtil->select('characteristic', null));
 	}
 
+	/**
+	 * @throws DboException
+	 */
 	function testWriteMultipleCharacteristics(): void {
 		$engine = $this->createEngine();
 
@@ -233,6 +236,35 @@ class DboCacheEngineTest extends TestCase {
 				$rows[1]);
 
 		$this->assertCount(5, $this->pdoUtil->select('characteristic', null));
+	}
+
+
+	/**
+	 * @throws DboException
+	 */
+	function testWriteAndOverwrite(): void {
+		$engine = $this->createEngine();
+
+		$engine->createDataTable();
+		$engine->createCharacteristicTable();
+
+		$engine->write('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], 'data1', null);
+
+		$rows = $this->pdoUtil->select('data', null);
+		$this->assertCount(1, $rows);
+		$this->assertEquals(
+				['name' => 'holeradio', 'characteristics' => serialize(['key' => 'value1', 'o-key' => 'o-value']),
+						'data' => serialize('data1'), 'expires_at' => null],
+				$rows[0]);
+
+		$engine->write('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], 'data2', null);
+
+		$rows = $this->pdoUtil->select('data', null);
+		$this->assertCount(1, $rows);
+		$this->assertEquals(
+				['name' => 'holeradio', 'characteristics' => serialize(['key' => 'value1', 'o-key' => 'o-value']),
+						'data' => serialize('data2'), 'expires_at' => null],
+				$rows[0]);
 	}
 
 	/**

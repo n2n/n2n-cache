@@ -7,6 +7,7 @@ use n2n\persistence\Pdo;
 use n2n\persistence\PdoException;
 use n2n\spec\dbo\err\DboException;
 use n2n\util\cache\CacheStoreOperationFailedException;
+use n2n\spec\dbo\Dbo;
 
 class DboCacheStore implements CacheStore {
 	private string $dataTableName = 'cached_data';
@@ -16,7 +17,7 @@ class DboCacheStore implements CacheStore {
 	private bool $tableAutoCreated = true;
 	private ?DboCacheEngine $pdoCacheEngine = null;
 
-	function __construct(private Pdo $pdo) {
+	function __construct(private Dbo $dbo) {
 	}
 
 	function setDataTableName(string $dataTableName): static {
@@ -76,7 +77,7 @@ class DboCacheStore implements CacheStore {
 
 	private function tableCheckedCall(\Closure $closure): mixed {
 		if ($this->pdoCacheEngine === null) {
-			$this->pdoCacheEngine = new DboCacheEngine($this->pdo, $this->dataTableName, $this->characteristicTableName,
+			$this->pdoCacheEngine = new DboCacheEngine($this->dbo, $this->dataTableName, $this->characteristicTableName,
 					$this->pdoCacheDataSize, $this->igbinaryEnabled);
 		}
 
