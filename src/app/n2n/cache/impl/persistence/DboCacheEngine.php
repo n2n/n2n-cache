@@ -19,6 +19,7 @@ class DboCacheEngine {
 	const CHARACTERISTICS_COLUMN = 'characteristics';
 	const CHARACTERISTIC_COLUMN = 'characteristic';
 	const DATA_COLUMN = 'data';
+	const CREATED_AT_COLUMN = 'created_at';
 	const EXPIRES_AT_COLUMN = 'expires_at';
 	const MAX_LENGTH = 255;
 	const MAX_TEXT_SIZE = 134217720;
@@ -34,8 +35,8 @@ class DboCacheEngine {
 			private readonly bool $igbinaryEnabled) {
 	}
 
-	private function dataSelectSql(bool $nameIncluded, bool $characteristicsIncluded, bool $expiredByTimeIncluded): string {
-		if ($this->dataSelectSql !== null && $nameIncluded && $characteristicsIncluded && !$expiredByTimeIncluded) {
+	private function dataSelectSql(bool $nameIncluded, bool $characteristicsIncluded): string {
+		if ($this->dataSelectSql !== null && $nameIncluded && $characteristicsIncluded) {
 			return $this->dataSelectSql;
 		}
 
@@ -53,14 +54,10 @@ class DboCacheEngine {
 					QueryItems::placeMarker(self::CHARACTERISTICS_COLUMN));
 		}
 
-		if ($expiredByTimeIncluded) {
-			$comparator->andMatch(QueryItems::column(self::EXPIRES_AT_COLUMN), '<=',
-					QueryItems::placeMarker(self::EXPIRES_AT_COLUMN));
-		}
-
-		if ($nameIncluded && $characteristicsIncluded && !$expiredByTimeIncluded) {
+		if ($nameIncluded && $characteristicsIncluded) {
 			return $this->dataSelectSql = $builder->toSqlString();
 		}
+
 		return $builder->toSqlString();
 	}
 
@@ -77,6 +74,8 @@ class DboCacheEngine {
 				QueryItems::placeMarker(self::CHARACTERISTICS_COLUMN));
 		$builder->addColumn(QueryItems::column(self::DATA_COLUMN, 'd'),
 				QueryItems::placeMarker(self::DATA_COLUMN));
+		$builder->addColumn(QueryItems::column(self::CREATED_AT_COLUMN),
+				QueryItems::placeMarker(self::CREATED_AT_COLUMN));
 		$builder->addColumn(QueryItems::column(self::EXPIRES_AT_COLUMN),
 				QueryItems::placeMarker(self::EXPIRES_AT_COLUMN));
 		$builder->setUpsertUniqueColumns([QueryItems::column(self::NAME_COLUMN, 'd'),
@@ -85,35 +84,22 @@ class DboCacheEngine {
 		return $this->dataUpsertSql = $builder->toSqlString();
 	}
 
-	private function dataDeleteSql(bool $nameIncluded, bool $characteristicsIncluded, bool $expiredByTimeIncluded): string {
-		if ($this->dataDeleteSql !== null && $nameIncluded && $characteristicsIncluded && !$expiredByTimeIncluded) {
+	private function dataDeleteSql(bool $nameIncluded, bool $characteristicsIncluded,
+			bool $createdEarlierThanTimeIncluded, bool $expiredByTimeIncluded): string {
+		if ($this->dataDeleteSql !== null && $nameIncluded && $characteristicsIncluded &&
+				!$createdEarlierThanTimeIncluded && !$expiredByTimeIncluded) {
 			return $this->dataDeleteSql;
 		}
 
-		$builder = $this->dbo->createDeleteStatementBuilder($this->dbo);
-		$builder->setTable($this->dataTableName);
-		$comparator = $builder->getWhereComparator();
+		$sql = $this->commonDeleteSql($this->dataTableName, $nameIncluded, $characteristicsIncluded,
+				$createdEarlierThanTimeIncluded, $expiredByTimeIncluded);
 
-		if ($nameIncluded) {
-			$comparator->match(QueryItems::column(self::NAME_COLUMN), '=',
-					QueryItems::placeMarker(self::NAME_COLUMN));
+		if ($nameIncluded && $characteristicsIncluded &&
+				!$createdEarlierThanTimeIncluded && !$expiredByTimeIncluded) {
+			return $this->dataDeleteSql = $sql;
 		}
 
-		if ($characteristicsIncluded) {
-			$comparator->andMatch(QueryItems::column(self::CHARACTERISTICS_COLUMN), '=',
-					QueryItems::placeMarker(self::CHARACTERISTICS_COLUMN));
-		}
-
-		if ($expiredByTimeIncluded) {
-			$comparator->andMatch(QueryItems::column(self::EXPIRES_AT_COLUMN), '<=',
-					QueryItems::placeMarker(self::EXPIRES_AT_COLUMN));
-		}
-
-		if ($nameIncluded && $characteristicsIncluded && !$expiredByTimeIncluded) {
-			return $this->dataDeleteSql = $builder->toSqlString();
-		}
-
-		return $builder->toSqlString();
+		return $sql;
 	}
 
 	private function characteristicSelectSql(bool $nameIncluded, bool $characteristicIncluded): string {
@@ -156,19 +142,35 @@ class DboCacheEngine {
 				QueryItems::placeMarker(self::CHARACTERISTICS_COLUMN));
 		$builder->addColumn(QueryItems::column(self::CHARACTERISTIC_COLUMN),
 				QueryItems::placeMarker(self::CHARACTERISTIC_COLUMN));
+		$builder->addColumn(QueryItems::column(self::CREATED_AT_COLUMN),
+				QueryItems::placeMarker(self::CREATED_AT_COLUMN));
 		$builder->addColumn(QueryItems::column(self::EXPIRES_AT_COLUMN),
 				QueryItems::placeMarker(self::EXPIRES_AT_COLUMN));
 
 		return $this->characteristicInsertSql = $builder->toSqlString();
 	}
 
-	private function characteristicDeleteSql(bool $nameIncluded, bool $characteristicsIncluded): string {
-		if ($this->characteristicDeleteSql !== null && $nameIncluded && $characteristicsIncluded) {
+	private function characteristicDeleteSql(bool $nameIncluded, bool $characteristicsIncluded,
+			bool $createdEarlierThanTimeIncluded, bool $expiredByTimeIncluded): string {
+		if ($this->characteristicDeleteSql !== null && $nameIncluded && $characteristicsIncluded &&
+				!$createdEarlierThanTimeIncluded && !$expiredByTimeIncluded) {
 			return $this->characteristicDeleteSql;
 		}
 
-		$builder = $this->dbo->createDeleteStatementBuilder($this->dbo);
-		$builder->setTable($this->characteristicTableName);
+		$sql = $this->commonDeleteSql($this->characteristicTableName, $nameIncluded, $characteristicsIncluded,
+				$createdEarlierThanTimeIncluded, $expiredByTimeIncluded);
+
+		if ($nameIncluded && $characteristicsIncluded && !$createdEarlierThanTimeIncluded && !$expiredByTimeIncluded) {
+			return $this->characteristicDeleteSql = $sql;
+		}
+
+		return $sql;
+	}
+
+	private function commonDeleteSql(string $tableName, bool $nameIncluded, bool $characteristicsIncluded,
+			bool $createdEarlierThanTimeIncluded, bool $expiredByTimeIncluded): string {
+		$builder = $this->dbo->createDeleteStatementBuilder();
+		$builder->setTable($tableName);
 		$comparator = $builder->getWhereComparator();
 
 		if ($nameIncluded) {
@@ -181,8 +183,14 @@ class DboCacheEngine {
 					QueryItems::placeMarker(self::CHARACTERISTICS_COLUMN));
 		}
 
-		if ($nameIncluded && $characteristicsIncluded) {
-			return $this->characteristicDeleteSql = $builder->toSqlString();
+		if ($createdEarlierThanTimeIncluded) {
+			$comparator->andMatch(QueryItems::column(self::CREATED_AT_COLUMN), '<',
+					QueryItems::placeMarker(self::CREATED_AT_COLUMN));
+		}
+
+		if ($expiredByTimeIncluded) {
+			$comparator->andMatch(QueryItems::column(self::EXPIRES_AT_COLUMN), '<=',
+					QueryItems::placeMarker(self::EXPIRES_AT_COLUMN));
 		}
 
 		return $builder->toSqlString();
@@ -191,11 +199,16 @@ class DboCacheEngine {
 	/**
 	 * @throws DboException
 	 */
-	function read(string $name, array $characteristics): ?array {
+	function read(string $name, array $characteristics, int $expiredByTime): ?array {
 		$characteristicsStr = $this->serializeCharacteristics($characteristics);
 		$rows = $this->selectFromDataTable($name, $characteristicsStr);
 
 		if (empty($rows)) {
+			return null;
+		}
+
+		if ($this->checkIfRowIsExpired($rows[0], $expiredByTime)) {
+			$this->deleteExpiredBy($expiredByTime);
 			return null;
 		}
 
@@ -282,8 +295,8 @@ class DboCacheEngine {
 		$characteristicsStr = $this->serializeCharacteristics($characteristics);
 
 		$this->execInTransaction(function () use ($name, $characteristicsStr) {
-			$this->deleteFromDataTable($name, $characteristicsStr, null);
-			$this->deleteFromCharacteristicTable($name, $characteristicsStr, null);
+			$this->deleteFromDataTable($name, $characteristicsStr, null, null);
+			$this->deleteFromCharacteristicTable($name, $characteristicsStr, null, null);
 		}, false);
 	}
 
@@ -292,8 +305,18 @@ class DboCacheEngine {
 	 */
 	function deleteExpiredBy(int $time): void {
 		$this->execInTransaction(function () use ($time) {
-			$this->deleteFromDataTable(null, null, $time);
-			$this->deleteFromCharacteristicTable(null, null, $time);
+			$this->deleteFromDataTable(null, null, null, $time);
+			$this->deleteFromCharacteristicTable(null, null, null, $time);
+		}, false);
+	}
+
+	/**
+	 * @throws DboException
+	 */
+	function deleteCreatedBefore(int $time): void {
+		$this->execInTransaction(function () use ($time) {
+			$this->deleteFromDataTable(null, null, $time, null);
+			$this->deleteFromCharacteristicTable(null, null, $time, null);
 		}, false);
 	}
 
@@ -305,8 +328,8 @@ class DboCacheEngine {
 		$characteristicNeedleStrs = $this->splitAndSerializeCharacteristics($characteristicNeedles);
 
 		$this->execInTransaction(function () use (&$nameNeedle, &$characteristicsStr, &$characteristicNeedleStrs) {
-			$this->deleteFromDataTable($nameNeedle, $characteristicsStr, null);
-			$this->deleteFromCharacteristicTable($nameNeedle, $characteristicsStr, null);
+			$this->deleteFromDataTable($nameNeedle, $characteristicsStr, null,null);
+			$this->deleteFromCharacteristicTable($nameNeedle, $characteristicsStr, null, null);
 
 			if (empty($characteristicNeedleStrs)) {
 				return;
@@ -315,8 +338,8 @@ class DboCacheEngine {
 			foreach ($this->selectFromCharacteristicTable($nameNeedle, $characteristicNeedleStrs) as $result) {
 				$name = $result[self::NAME_COLUMN];
 				$characteristicsStr = $result[self::CHARACTERISTICS_COLUMN];
-				$this->deleteFromDataTable($name, $characteristicsStr, null);
-				$this->deleteFromCharacteristicTable($name, $characteristicsStr, null);
+				$this->deleteFromDataTable($name, $characteristicsStr, null, null);
+				$this->deleteFromCharacteristicTable($name, $characteristicsStr, null, null);
 			}
 		}, true);
 	}
@@ -325,8 +348,8 @@ class DboCacheEngine {
 	 * @throws DboException
 	 */
 	function clear(): void {
-		$this->deleteFromDataTable(null, null, null);
-		$this->deleteFromCharacteristicTable(null, null, null);
+		$this->deleteFromDataTable(null, null, null, null);
+		$this->deleteFromCharacteristicTable(null, null, null, null);
 	}
 
 	/**
@@ -335,7 +358,7 @@ class DboCacheEngine {
 	 * @return array
 	 * @throws DboException
 	 */
-	function findBy(?string $nameNeedle, ?array $characteristicNeedles): array {
+	function findBy(?string $nameNeedle, ?array $characteristicNeedles, int $expiredByTime): array {
 		$characteristicsStr = $this->serializeCharacteristics($characteristicNeedles);
 		$characteristicNeedleStrs = $this->splitAndSerializeCharacteristics($characteristicNeedles);
 
@@ -354,7 +377,17 @@ class DboCacheEngine {
 			}
 		}, true);
 
-		return array_map(fn ($row) => self::unserializeResult($row), $rows);
+		$notExpiredRows = array_filter($rows, fn ($row) => !$this->checkIfRowIsExpired($row, $expiredByTime));
+
+		if (count($notExpiredRows) !== count($rows)) {
+			$this->deleteExpiredBy($expiredByTime);
+		}
+
+		return array_map(fn ($notExpiredRow) => self::unserializeResult($notExpiredRow), $notExpiredRows);
+	}
+
+	private function checkIfRowIsExpired(array $row, int $expiredByTime): bool {
+		return isset($row[self::EXPIRES_AT_COLUMN]) && $expiredByTime <= $row[self::EXPIRES_AT_COLUMN];
 	}
 
 	private function ensureNotInTransaction(): void {
@@ -370,15 +403,16 @@ class DboCacheEngine {
 	/**
 	 * @throws DboException
 	 */
-	function write(string $name, array $characteristics, mixed $data, ?int $expiresAt): void {
+	function write(string $name, array $characteristics, mixed $data, int $createdAtTime, ?int $expiresAtTime): void {
 		$characteristicsStr = $this->serializeCharacteristics($characteristics);
 		$dataStr = $this->serializeData($data);
 
-		$this->execInTransaction(function () use (&$name, &$characteristicsStr, &$dataStr, &$characteristics, &$expiresAt) {
-			$this->upsertIntoDataTable($name, $characteristicsStr, $dataStr, $expiresAt);
-			$this->deleteFromCharacteristicTable($name, $characteristicsStr, null);
+		$this->execInTransaction(function () use (&$name, &$characteristicsStr, &$dataStr, &$characteristics,
+				&$createdAtTime, &$expiresAtTime) {
+			$this->upsertIntoDataTable($name, $characteristicsStr, $dataStr, $createdAtTime, $expiresAtTime);
+			$this->deleteFromCharacteristicTable($name, $characteristicsStr, null,null);
 			if (count($characteristics) > 1) {
-				$this->insertIntoCharacteristicTable($name, $characteristicsStr, $characteristics, $expiresAt);
+				$this->insertIntoCharacteristicTable($name, $characteristicsStr, $characteristics, $createdAtTime, $expiresAtTime);
 			}
 		}, false);
 	}
@@ -386,26 +420,29 @@ class DboCacheEngine {
 	/**
 	 * @throws DboException
 	 */
-	private function deleteFromDataTable(?string $name, ?string $characteristicsStr, ?int $expiredByTime): void {
+	private function deleteFromDataTable(?string $name, ?string $characteristicsStr, ?int $createdEarlierThanTime,
+			?int $expiredByTime): void {
 		$stmt = $this->dbo->prepare($this->dataDeleteSql($name !== null, $characteristicsStr !== null,
-				$expiredByTime !== null));
+				$createdEarlierThanTime!== null, $expiredByTime !== null));
 
 		$stmt->execute(ArrayUtils::filterNotNull(
 				[self::NAME_COLUMN => $name, self::CHARACTERISTICS_COLUMN => $characteristicsStr,
-						self::EXPIRES_AT_COLUMN => $expiredByTime]));
+						self::CREATED_AT_COLUMN => $createdEarlierThanTime, self::EXPIRES_AT_COLUMN => $expiredByTime]));
 	}
 
 	/**
 	 * @throws DboException
 	 */
-	private function upsertIntoDataTable(string $name, string $characteristicsStr, ?string $dataStr, ?int $expiresAt): void {
+	private function upsertIntoDataTable(string $name, string $characteristicsStr, ?string $dataStr,
+			?int $createdAtTime, ?int $expiresAtTime): void {
 		$stmt = $this->dbo->prepare($this->dataUpsertSql());
 
 		$stmt->execute([
 			self::NAME_COLUMN => $name,
 			self::CHARACTERISTICS_COLUMN => $characteristicsStr,
 			self::DATA_COLUMN => $dataStr,
-			self::EXPIRES_AT_COLUMN => $expiresAt
+			self::CREATED_AT_COLUMN => $createdAtTime,
+			self::EXPIRES_AT_COLUMN => $expiresAtTime
 		]);
 	}
 
@@ -413,7 +450,7 @@ class DboCacheEngine {
 	 * @throws DboException
 	 */
 	private function selectFromDataTable(?string $name, ?string $characteristicsStr): array {
-		$stmt = $this->dbo->prepare($this->dataSelectSql($name !== null, $characteristicsStr !== null, false));
+		$stmt = $this->dbo->prepare($this->dataSelectSql($name !== null, $characteristicsStr !== null));
 		$stmt->execute(ArrayUtils::filterNotNull([self::NAME_COLUMN => $name,
 				self::CHARACTERISTICS_COLUMN => $characteristicsStr]));
 
@@ -424,23 +461,25 @@ class DboCacheEngine {
 	/**
 	 * @throws DboException
 	 */
-	private function deleteFromCharacteristicTable(?string $name, ?string $characteristicsStr, ?int $expiredByTime): void {
+	private function deleteFromCharacteristicTable(?string $name, ?string $characteristicsStr,
+			?int $createdEarlierThanTime, ?int $expiredByTime): void {
 		$stmt = $this->dbo->prepare($this->characteristicDeleteSql($name !== null,$characteristicsStr !== null,
-				$expiredByTime !== null));
+				$createdEarlierThanTime !== null, $expiredByTime !== null));
 		$stmt->execute(ArrayUtils::filterNotNull([self::NAME_COLUMN => $name,
-				self::CHARACTERISTICS_COLUMN => $characteristicsStr, self::EXPIRES_AT_COLUMN => $expiredByTime]));
+				self::CHARACTERISTICS_COLUMN => $characteristicsStr,
+				self::CREATED_AT_COLUMN => $createdEarlierThanTime, self::EXPIRES_AT_COLUMN => $expiredByTime]));
 	}
 
 	/**
 	 * @throws DboException
 	 */
 	private function insertIntoCharacteristicTable(string $name, string $characteristicsStr, array $characteristics,
-			?int $expiresAt): void {
+			?int $createdAtTime, ?int $expiresAtTime): void {
 		$stmt = $this->dbo->prepare($this->characteristicInsertSql());
 		foreach ($characteristics as $key => $value) {
 			$stmt->execute([self::NAME_COLUMN => $name, self::CHARACTERISTICS_COLUMN => $characteristicsStr,
 					self::CHARACTERISTIC_COLUMN => $this->serializeCharacteristics([$key => $value]),
-					self::EXPIRES_AT_COLUMN => $expiresAt]);
+					self::CREATED_AT_COLUMN => $createdAtTime, self::EXPIRES_AT_COLUMN => $expiresAtTime]);
 		}
 	}
 
@@ -499,10 +538,12 @@ class DboCacheEngine {
 		$columnFactory->createBinaryColumn(self::NAME_COLUMN, self::MAX_LENGTH)->setNullAllowed(false);
 		$columnFactory->createBinaryColumn(self::CHARACTERISTICS_COLUMN, self::MAX_LENGTH)
 				->setNullAllowed(false);
+		$columnFactory->createIntegerColumn(self::CREATED_AT_COLUMN, 32);
 		$columnFactory->createIntegerColumn(self::EXPIRES_AT_COLUMN, 32);
 
 		$dataTable->createIndex(IndexType::PRIMARY, [self::NAME_COLUMN, self::CHARACTERISTICS_COLUMN]);
 		$dataTable->createIndex(IndexType::INDEX, [self::CHARACTERISTICS_COLUMN]);
+		$dataTable->createIndex(IndexType::INDEX, [self::CREATED_AT_COLUMN]);
 		$dataTable->createIndex(IndexType::INDEX, [self::EXPIRES_AT_COLUMN]);
 
 		switch ($this->pdoCacheDataSize) {
@@ -531,10 +572,12 @@ class DboCacheEngine {
 		$columnFactory->createBinaryColumn(self::NAME_COLUMN, self::MAX_LENGTH)->setNullAllowed(false);
 		$columnFactory->createBinaryColumn(self::CHARACTERISTICS_COLUMN, self::MAX_LENGTH)->setNullAllowed(false);
 		$columnFactory->createBinaryColumn(self::CHARACTERISTIC_COLUMN, self::MAX_LENGTH)->setNullAllowed(false);
+		$columnFactory->createIntegerColumn(self::CREATED_AT_COLUMN, 32);
 		$columnFactory->createIntegerColumn(self::EXPIRES_AT_COLUMN, 32);
 
 		$characteristicTable->createIndex(IndexType::PRIMARY, [self::NAME_COLUMN, self::CHARACTERISTICS_COLUMN, self::CHARACTERISTIC_COLUMN]);
 		$characteristicTable->createIndex(IndexType::INDEX, [self::CHARACTERISTIC_COLUMN, self::NAME_COLUMN]);
+		$characteristicTable->createIndex(IndexType::INDEX, [self::CREATED_AT_COLUMN]);
 		$characteristicTable->createIndex(IndexType::INDEX, [self::EXPIRES_AT_COLUMN]);
 
 		$metaData->getMetaManager()->flush();

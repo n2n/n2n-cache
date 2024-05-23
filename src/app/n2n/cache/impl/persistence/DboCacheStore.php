@@ -3,8 +3,6 @@ namespace n2n\cache\impl\persistence;
 
 use n2n\util\cache\CacheStore;
 use n2n\util\cache\CacheItem;
-use n2n\persistence\Pdo;
-use n2n\persistence\PdoException;
 use n2n\spec\dbo\err\DboException;
 use n2n\util\cache\CacheStoreOperationFailedException;
 use n2n\spec\dbo\Dbo;
@@ -110,20 +108,24 @@ class DboCacheStore implements CacheStore {
 
 	public function store(string $name, array $characteristics, mixed $data, \DateInterval $ttl = null,
 			\DateTimeInterface $now = null): void {
+		$now ??= new \DateTime();
+		$createdAt = $now->getTimestamp();
 		$expiresAt = null;
 		if ($ttl !== null) {
-			$expiresAt = ($now ?? new \DateTime())->add($ttl)->getTimestamp();
+			$expiresAt = $now->add($ttl)->getTimestamp();
 		}
 
 		$this->tableCheckedCall(/** @throws DboException */ function ()
-					use (&$name, &$characteristics, &$data, &$expiresAt) {
-				$this->pdoCacheEngine->write($name, $characteristics, $data, $expiresAt);
+					use (&$name, &$characteristics, &$data, &$createdAt, &$expiresAt) {
+				$this->pdoCacheEngine->write($name, $characteristics, $data, $createdAt, $expiresAt);
 			});
 	}
 
 	public function get(string $name, array $characteristics, \DateTimeInterface $now = null): ?CacheItem {
-		$result = $this->tableCheckedCall(/** @throws DboException */ function () use (&$name, &$characteristics) {
-			return $this->pdoCacheEngine->read($name, $characteristics);
+		$expiredByTime = ($now ?? new \DateTime())->getTimestamp();
+
+		$result = $this->tableCheckedCall(/** @throws DboException */ function () use (&$name, &$characteristics, &$expiredByTime) {
+			return $this->pdoCacheEngine->read($name, $characteristics, $expiredByTime);
 		});
 
 		return self::parseCacheItem($result);
@@ -145,8 +147,11 @@ class DboCacheStore implements CacheStore {
 	}
 
 	public function findAll(string $name, array $characteristicNeedles = null, \DateTimeInterface $now = null): array {
-		$results = $this->tableCheckedCall(/** @throws DboException */ function () use (&$name, &$characteristics) {
-			return $this->pdoCacheEngine->findBy($name, $characteristics);
+		$expiredByTime = ($now ?? new \DateTime())->getTimestamp();
+
+		$results = $this->tableCheckedCall(/** @throws DboException */ function () use (&$name, &$characteristics,
+				&$expiredByTime) {
+			return $this->pdoCacheEngine->findBy($name, $characteristics, $expiredByTime);
 		});
 
 		return array_map(fn ($result) => self::parseCacheItem($result), $results);
