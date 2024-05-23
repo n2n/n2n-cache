@@ -7,6 +7,7 @@ use n2n\persistence\Pdo;
 use n2n\impl\persistence\meta\sqlite\SqliteDialect;
 use n2n\core\config\PersistenceUnitConfig;
 use n2n\test\DbTestPdoUtil;
+use n2n\persistence\orm\attribute\DateTime;
 
 class DboCacheStoreTest extends TestCase {
 	private Pdo $pdo;
@@ -121,6 +122,44 @@ class DboCacheStoreTest extends TestCase {
 		$this->assertCount(0, $this->pdoUtil->select('cached_data', null));
 	}
 
+
+	function testGarbageCollectTableCreation(): void {
+		$store = (new DboCacheStore($this->pdo))->setPdoCacheDataSize(DboCacheDataSize::STRING);
+
+		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
+		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
+
+		$store->garbageCollect();
+
+		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
+		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
+	}
+
+	function testGarbageCollect() {
+		$store = (new DboCacheStore($this->pdo))->setPdoCacheDataSize(DboCacheDataSize::STRING);
+
+		$now = new \DateTimeImmutable();
+		$dateInterval = new \DateInterval('PT10S');
+		$doubleDateInterval = new \DateInterval('PT20S');
+		$past = $now->sub($dateInterval);
+
+		$store->store('holeradio1', [], 'data1', $dateInterval, $past);
+		$store->store('holeradio2', [], 'data2', $doubleDateInterval, $past);
+		$this->assertCount(2, $this->pdoUtil->select('cached_data', null));
+
+		$store->garbageCollect(null, $now);
+
+		$rows = $this->pdoUtil->select('cached_data', null);
+		$this->assertCount(1, $rows);
+		$this->assertEquals('holeradio2', $rows[0]['name']);
+
+		$store->store('holeradio1', [], 'data1', $dateInterval, $past);
+		$this->assertCount(2, $this->pdoUtil->select('cached_data', null));
+
+		$store->garbageCollect($dateInterval, $now);
+
+		$this->assertCount(0, $this->pdoUtil->select('cached_data', null));
+	}
 
 //
 //	function testTableCreate() {

@@ -188,7 +188,7 @@ class DboCacheEngine {
 		}
 
 		if ($expiredByTimeIncluded) {
-			$comparator->andMatch(QueryItems::column(self::EXPIRES_AT_COLUMN), '>=',
+			$comparator->andMatch(QueryItems::column(self::EXPIRES_AT_COLUMN), '<=',
 					QueryItems::placeMarker(self::EXPIRES_AT_COLUMN));
 		}
 
@@ -421,11 +421,6 @@ class DboCacheEngine {
 	 */
 	private function deleteFromDataTable(?string $name, ?string $characteristicsStr, ?int $createdByTime,
 			?int $expiredByTime): void {
-		var_dump($this->dataDeleteSql($name !== null, $characteristicsStr !== null,
-				$createdByTime!== null, $expiredByTime !== null));
-		var_dump(ArrayUtils::filterNotNull(
-				[self::NAME_COLUMN => $name, self::CHARACTERISTICS_COLUMN => $characteristicsStr,
-						self::CREATED_AT_COLUMN => $createdByTime, self::EXPIRES_AT_COLUMN => $expiredByTime]));
 		$stmt = $this->dbo->prepare($this->dataDeleteSql($name !== null, $characteristicsStr !== null,
 				$createdByTime!== null, $expiredByTime !== null));
 

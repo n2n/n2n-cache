@@ -565,9 +565,9 @@ class DboCacheEngineTest extends TestCase {
 		$engine->createDataTable();
 		$engine->createCharacteristicTable();
 
-		$engine->write('holeradio1', ['key' => 'value1', 'o-key' => 'o-value'], 'data1', $time, null);
-		$engine->write('holeradio-expired1', ['key' => 'value-expired', 'o-key' => 'o-value-expired'], 'data-expired1', $time, $futureTime);
-		$engine->write('holeradio-expired2', ['key' => 'value-expired', 'o-key' => 'o-value-expired'], 'data-expired2', $time, $future2Time);
+		$engine->write('holeradio-expired1', ['key' => 'value-expired', 'o-key' => 'o-value-expired'], 'data-expired1', $time, $time);
+		$engine->write('holeradio-expired2', ['key' => 'value-expired', 'o-key' => 'o-value-expired'], 'data-expired2', $time, $futureTime);
+		$engine->write('holeradio1', ['key' => 'value1', 'o-key' => 'o-value'], 'data1', $time, $future2Time);
 		$engine->write('holeradio2', ['key' => 'value2', 'o-key' => 'o-value'], 'data2', $futureTime, null);
 		$engine->write('holeradio3', ['key' => 'value3', 'o-key' => 'o-value'], 'data3', $future2Time, null);
 
