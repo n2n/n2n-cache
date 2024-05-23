@@ -23,8 +23,8 @@ class DboCacheEngine {
 	const MAX_LENGTH = 255;
 	const MAX_TEXT_SIZE = 134217720;
 	private ?string $dataSelectSql = null;
-	private ?string $itemInsertSql = null;
-	private ?string $itemDeleteSql = null;
+	private ?string $dataUpsertSql = null;
+	private ?string $dataDeleteSql = null;
 	private ?string $characteristicSelectSql = null;
 	private ?string $characteristicInsertSql = null;
 	private ?string $characteristicDeleteSql = null;
@@ -35,7 +35,7 @@ class DboCacheEngine {
 	}
 
 	private function dataSelectSql(bool $nameIncluded, bool $characteristicsIncluded, bool $expiredByTimeIncluded): string {
-		if ($this->dataSelectSql !== null && $nameIncluded && $characteristicsIncluded) {
+		if ($this->dataSelectSql !== null && $nameIncluded && $characteristicsIncluded && !$expiredByTimeIncluded) {
 			return $this->dataSelectSql;
 		}
 
@@ -65,8 +65,8 @@ class DboCacheEngine {
 	}
 
 	private function dataUpsertSql(): string {
-		if ($this->itemInsertSql !== null) {
-			return $this->itemInsertSql;
+		if ($this->dataUpsertSql !== null) {
+			return $this->dataUpsertSql;
 		}
 
 		$builder = $this->dbo->createInsertStatementBuilder();
@@ -82,12 +82,12 @@ class DboCacheEngine {
 		$builder->setUpsertUniqueColumns([QueryItems::column(self::NAME_COLUMN, 'd'),
 				QueryItems::column(self::CHARACTERISTICS_COLUMN, 'd')]);
 
-		return $this->itemInsertSql = $builder->toSqlString();
+		return $this->dataUpsertSql = $builder->toSqlString();
 	}
 
 	private function dataDeleteSql(bool $nameIncluded, bool $characteristicsIncluded, bool $expiredByTimeIncluded): string {
-		if ($this->itemDeleteSql !== null && $nameIncluded && $characteristicsIncluded) {
-			return $this->itemDeleteSql;
+		if ($this->dataDeleteSql !== null && $nameIncluded && $characteristicsIncluded && !$expiredByTimeIncluded) {
+			return $this->dataDeleteSql;
 		}
 
 		$builder = $this->dbo->createDeleteStatementBuilder($this->dbo);
@@ -110,7 +110,7 @@ class DboCacheEngine {
 		}
 
 		if ($nameIncluded && $characteristicsIncluded && !$expiredByTimeIncluded) {
-			return $this->itemDeleteSql = $builder->toSqlString();
+			return $this->dataDeleteSql = $builder->toSqlString();
 		}
 
 		return $builder->toSqlString();

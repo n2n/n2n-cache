@@ -589,4 +589,26 @@ class DboCacheEngineTest extends TestCase {
 		$rows = $this->pdoUtil->select('characteristic', null);
 		$this->assertCount(0, $rows);
 	}
+
+//	/**
+//	 * @throws DboException
+//	 */
+//	function testCachedSelectSql(): void {
+//		$engine = $this->createEngine(igbinaryEnabled: true);
+//
+//		$engine->createDataTable();
+//		$engine->createCharacteristicTable();
+//
+//		$time = time();
+//		$time2 = $time + 1000;
+//
+//		$engine->write('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], 'data1', $time);
+//		$engine->write('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], 'data1', $time2);
+//
+//		$this->assertCount(2, $engine->findBy('holeradio', ['key' => 'value1', 'o-key' => 'o-value']));
+//		$this->assertCount(2, $engine->read('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], $time));
+//
+//
+//
+//	}
 }
