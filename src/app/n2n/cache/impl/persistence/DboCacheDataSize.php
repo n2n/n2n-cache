@@ -2,7 +2,7 @@
 
 namespace n2n\cache\impl\persistence;
 
-enum DdoCacheDataSize {
+enum DboCacheDataSize {
 	/**
 	 * Gets translated to a VARCHAR column
 	 */
