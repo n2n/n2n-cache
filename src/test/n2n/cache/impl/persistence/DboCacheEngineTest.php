@@ -697,7 +697,7 @@ class DboCacheEngineTest extends TestCase {
 	 * @throws DboException
 	 */
 	function testCachedSelectSql(): void {
-		$engine = $this->createEngine(igbinaryEnabled: true);
+		$engine = $this->createEngine();
 
 		$engine->createDataTable();
 		$engine->createCharacteristicTable();
@@ -715,7 +715,7 @@ class DboCacheEngineTest extends TestCase {
 	}
 
 	function testCachedDeleteSql(): void {
-		$engine = $this->createEngine(igbinaryEnabled: true);
+		$engine = $this->createEngine();
 
 		$engine->createDataTable();
 		$engine->createCharacteristicTable();
