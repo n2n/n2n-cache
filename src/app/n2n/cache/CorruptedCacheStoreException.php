@@ -21,5 +21,5 @@
  */
 namespace n2n\cache;
 
-class CorruptedCacheStoreException extends \RuntimeException {
+class CorruptedCacheStoreException extends CacheStoreException {
 }

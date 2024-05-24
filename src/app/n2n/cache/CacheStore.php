@@ -21,23 +21,33 @@
  */
 namespace n2n\cache;
 
+/**
+ * If any operation failed due to CacheStore related errors, a CacheStoreOperationFailedException should be thrown.
+ */
 interface CacheStore {
 	/**
+	 * Note: If tll was provided but is not supported by the given CacheStore, a
+	 * {@link UnsupportedCacheStoreOperationException} must be thrown.
+	 *
 	 * @param string $name
 	 * @param string[] $characteristics e. g. <code>['category' => 'news', 'mode' => 'some-mode']</code>
 	 * @param mixed $data
+	 * @param \DateTimeInterface|null $now
+	 * @param \DateInterval|null $ttl
 	 */
-	public function store(string $name, array $characteristics, mixed $data, \DateTime $lastMod = null);
+	public function store(string $name, array $characteristics, mixed $data, \DateInterval $ttl = null,
+			\DateTimeInterface $now = null): void;
 
 	/**
 	 * Returns the CacheItem which has been stored with exactly these params (name and characteristics).
 	 *
 	 * @param string $name
 	 * @param string[] $characteristics
+	 * @param \DateTimeInterface|null $now
 	 * @return CacheItem|null null if item does not exist
 	 * @throws CorruptedCacheStoreException
 	 */
-	public function get(string $name, array $characteristics): ?CacheItem;
+	public function get(string $name, array $characteristics, \DateTimeInterface $now = null): ?CacheItem;
 
 	/**
 	 * Remove the data which has been stored with exactly these params (name and characteristics).
@@ -55,9 +65,10 @@ interface CacheStore {
 	 *
 	 * @param string $name
 	 * @param string[] $characteristicNeedles
+	 * @param \DateTimeInterface|null $now
 	 * @return CacheItem[]
 	 */
-	public function findAll(string $name, array $characteristicNeedles = null): array;
+	public function findAll(string $name, array $characteristicNeedles = null, \DateTimeInterface $now = null): array;
 
 	/**
 	 * Returns the CacheItems which has been stored with exactly this name (if provided) and contains all the passed
@@ -66,6 +77,22 @@ interface CacheStore {
 	 * @param string[] $characteristicNeedles
 	 */
 	public function removeAll(?string $name, array $characteristicNeedles = null);
+
+	/**
+	 * Remove all CacheItems that are considered old by the ttl parameter provided when stored (see {@link self::store()})
+	 * or by the individual specification of the given CacheStore.
+	 *
+	 * If the maxLifetime parameter is not null, it also removes all CacheItems older than this maxLifetime regardless
+	 * of the ttl parameter specified when stored ({@link self::store()}).
+	 *
+	 * Note: If maxLifetime was provided but is not supported by the given CacheStore, a
+	 * {@link UnsupportedCacheStoreOperationException} must be thrown.
+	 *
+	 * @param \DateInterval|null $maxLifetime
+	 * @param \DateTimeInterface|null $now
+	 * @return void
+	 */
+	public function garbageCollect(\DateInterval $maxLifetime = null, \DateTimeInterface $now = null): void;
 
 	/**
 	 * Removes all stored CacheItems.

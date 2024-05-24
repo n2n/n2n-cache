@@ -1,10 +1,10 @@
 <?php
 namespace n2n\cache\impl\persistence;
 
-use n2n\util\cache\CacheStore;
-use n2n\util\cache\CacheItem;
+use n2n\cache\CacheStore;
+use n2n\cache\CacheItem;
 use n2n\spec\dbo\err\DboException;
-use n2n\util\cache\CacheStoreOperationFailedException;
+use n2n\cache\CacheStoreOperationFailedException;
 use n2n\spec\dbo\Dbo;
 
 class DboCacheStore implements CacheStore {

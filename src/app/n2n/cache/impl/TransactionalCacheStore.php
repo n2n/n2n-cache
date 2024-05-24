@@ -36,7 +36,7 @@
 // 	}
 // 	/**
 // 	 * {@inheritDoc}
-// 	 * @see \n2n\util\cache\CacheStore::store()
+// 	 * @see \n2n\cache\CacheStore::store()
 // 	 */
 // 	public function store(string $name, array $characteristics, $data, \DateTime $lastMod = null) {
 // 		return $this->cacheStore->get($name, $characteristics);
@@ -44,7 +44,7 @@
 
 // 	/**
 // 	 * {@inheritDoc}
-// 	 * @see \n2n\util\cache\CacheStore::get()
+// 	 * @see \n2n\cache\CacheStore::get()
 // 	 */
 // 	public function get(string $name, array $characteristics) {
 // 		return $this->cacheStore->get($name, $characteristics);
@@ -52,14 +52,14 @@
 
 // 	/**
 // 	 * {@inheritDoc}
-// 	 * @see \n2n\util\cache\CacheStostringublic function remove(string $name, array $characteristics) {
+// 	 * @see \n2n\cache\CacheStostringublic function remove(string $name, array $characteristics) {
 // 		// TODO Auto-generated method stub
 		
 // 	}
 
 // 	/**
 // 	 * {@inheritDoc}
-// 	 * @see \n2n\util\cache\CacheStore::findAll()
+// 	 * @see \n2n\cache\CacheStore::findAll()
 // 	 */
 // 	public function findAll(string $name, array $characteristicNeedles = null) {
 // 		return $this->cacheStore->findAll($name, $characteristicNeedles);
@@ -67,7 +67,7 @@
 
 // 	/**
 // 	 * {@inheritDoc}
-// 	 * @see \n2n\util\cache\CacheStore::removeAll()
+// 	 * @see \n2n\cache\CacheStore::removeAll()
 // 	 */
 // 	public function removeAll(string $name, array $characteristicNeedles = null) {
 // 		// TODO Auto-generated method stub
@@ -76,7 +76,7 @@
 
 // 	/**
 // 	 * {@inheritDoc}
-// 	 * @see \n2n\util\cache\CacheStore::clear()
+// 	 * @see \n2n\cache\CacheStore::clear()
 // 	 */
 // 	public function clear() {
 // 		// TODO Auto-generated method stub

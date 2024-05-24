@@ -4,7 +4,7 @@ namespace n2n\cache\impl\persistence;
 
 use n2n\util\StringUtils;
 use n2n\util\UnserializationFailedException;
-use n2n\util\cache\CorruptedCacheStoreException;
+use n2n\cache\CorruptedCacheStoreException;
 use n2n\util\ex\IllegalStateException;
 use n2n\util\col\ArrayUtils;
 use n2n\util\type\ArgUtils;

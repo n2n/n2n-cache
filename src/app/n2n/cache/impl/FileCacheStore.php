@@ -21,20 +21,23 @@
  */
 namespace n2n\cache\impl;
 
-use n2n\util\cache\CacheStore;
+use n2n\cache\CacheStore;
 use n2n\util\io\fs\FsPath;
 use n2n\util\io\IoUtils;
 use n2n\util\ex\IllegalStateException;
 use n2n\util\HashUtils;
-use n2n\util\cache\CacheItem;
+use n2n\cache\CacheItem;
 use n2n\util\StringUtils;
 use n2n\util\UnserializationFailedException;
-use n2n\util\cache\CorruptedCacheStoreException;
+use n2n\cache\CorruptedCacheStoreException;
 use n2n\util\io\IoException;
-use n2n\util\DateUtils;
 use n2n\util\io\stream\impl\FileResourceStream;
 use n2n\util\io\fs\FileOperationException;
-use DateTime;
+use n2n\util\ex\UnsupportedOperationException;
+use n2n\util\ex\ExUtils;
+use n2n\concurrency\sync\impl\Sync;
+use n2n\concurrency\sync\LockMode;
+use n2n\concurrency\sync\Lock;
 
 class FileCacheStore implements CacheStore {
 	const CHARACTERISTIC_DELIMITER = '.';
@@ -89,25 +92,33 @@ class FileCacheStore implements CacheStore {
 	 * @param string $filePath
 	 * @return CacheFileLock|null
 	 */
-	private function buildReadLock(FsPath $filePath) {
+	private function buildReadLock(FsPath $filePath): Lock {
 		$lockFilePath = new FsPath($filePath . self::LOCK_FILE_SUFFIX);
-		if (!$lockFilePath->exists()) {
-			return null;
-		}
+//		if (!$lockFilePath->exists()) {
+//			return null;
+//		}
+//
+//		return new CacheFileLock(new FileResourceStream($lockFilePath, 'w', LOCK_SH));
 
-		return new CacheFileLock(new FileResourceStream($lockFilePath, 'w', LOCK_SH));
+		$lock = Sync::byFileLock($lockFilePath);
+		ExUtils::try(fn () => $lock->acquire(LockMode::SHARED));
+		return $lock;
 	}
 	/**
 	 * @param string $filePath
 	 * @return CacheFileLock
 	 */
-	private function createWriteLock(string $filePath) {
+	private function createWriteLock(string $filePath): Lock {
 		IllegalStateException::assertTrue($this->filePerm !== null,
 				'Can not create write lock if no file permission is defined for FileCacheStore.');
 
 		$lockFilePath = new FsPath($filePath . self::LOCK_FILE_SUFFIX);
-		$lock = new CacheFileLock(new FileResourceStream($lockFilePath, 'w', LOCK_EX));
-		$lockFilePath->chmod($this->filePerm);
+//		$lock = new CacheFileLock(new FileResourceStream($lockFilePath, 'w', LOCK_EX));
+		$lock = Sync::byFileLock($lockFilePath);
+		ExUtils::try(fn () => $lock->acquire(LockMode::EXCLUSIVE));
+		if ($this->filePerm !== null) {
+			$lockFilePath->chmod($this->filePerm);
+		}
 		return $lock;
 	}
 
@@ -145,7 +156,8 @@ class FileCacheStore implements CacheStore {
 	/* (non-PHPdoc)
 	 * @see \n2n\cache\CacheStore::store()
 	 */
-	public function store(string $name, array $characteristics, mixed $data, DateTime $lastMod = null) {
+	public function store(string $name, array $characteristics, mixed $data, \DateInterval $ttl = null,
+			\DateTimeInterface $now = null): void {
 		$nameDirPath = $this->buildNameDirPath($name);
 		if (!$nameDirPath->isDir()) {
 			if ($this->dirPerm === null) {
@@ -168,15 +180,11 @@ class FileCacheStore implements CacheStore {
 			throw new IllegalStateException('No file permission set for FileCacheStore.');
 		}
 
-		if ($lastMod === null) {
-			$lastMod = new DateTime();
-		}
-
 		$filePath = $nameDirPath->ext($this->buildFileName($characteristics));
 
 		$lock = $this->createWriteLock((string) $filePath);
 		IoUtils::putContentsSafe($filePath->__toString(), serialize(array('characteristics' => $characteristics,
-				'data' => $data, 'lastMod' => $lastMod->getTimestamp())));
+				'data' => $data)));
 
 
 		$filePath->chmod($this->filePerm);
@@ -192,10 +200,10 @@ class FileCacheStore implements CacheStore {
 		if (!$filePath->exists()) return null;
 
 		$lock = $this->buildReadLock($filePath);
-		if ($lock === null) {
-			$filePath->delete();
-			return null;
-		}
+//		if ($lock === null) {
+//			$filePath->delete();
+//			return null;
+//		}
 
 		if (!$filePath->exists()) {
 			$lock->release(true);
@@ -223,21 +231,19 @@ class FileCacheStore implements CacheStore {
 			throw new CorruptedCacheStoreException('Could not retrieve file: ' . $filePath, 0, $e);
 		}
 
-		if (!isset($attrs['characteristics']) || !is_array($attrs['characteristics']) || !isset($attrs['data'])
-				|| !isset($attrs['lastMod']) || !is_numeric($attrs['lastMod'])) {
+		if (!isset($attrs['characteristics']) || !is_array($attrs['characteristics']) || !isset($attrs['data'])) {
 			throw new CorruptedCacheStoreException('Corrupted cache file: ' . $filePath);
 		}
 
 
-		$ci = new CacheItem($name, $attrs['characteristics'], null,
-				DateUtils::createDateTimeFromTimestamp($attrs['lastMod']));
+		$ci = new CacheItem($name, $attrs['characteristics'], null);
 		$ci->data = &$attrs['data'];
 		return $ci;
 	}
 	/* (non-PHPdoc)
 	 * @see \n2n\cache\CacheStore::get()
 	 */
-	public function get(string $name, array $characteristics): ?CacheItem {
+	public function get(string $name, array $characteristics, \DateTimeInterface $now = null): ?CacheItem {
 		$nameDirPath = $this->buildNameDirPath($name);
 		if (!$nameDirPath->exists()) return null;
 		return $this->read($name, $nameDirPath->ext($this->buildFileName($characteristics)));
@@ -317,7 +323,7 @@ class FileCacheStore implements CacheStore {
 
 	}
 
-	public function findAll(string $name, array $characteristicNeedles = null): array {
+	public function findAll(string $name, array $characteristicNeedles = null, \DateTimeInterface $now = null): array {
 		$cacheItems = array();
 
 		foreach ($this->findFilePaths($name, $characteristicNeedles) as $filePath) {
@@ -348,5 +354,9 @@ class FileCacheStore implements CacheStore {
 		foreach ($this->dirPath->getChildDirectories() as $nameDirPath) {
 			$this->removeAll($nameDirPath->getName());
 		}
+	}
+
+	public function garbageCollect(\DateInterval $maxLifetime = null, \DateTimeInterface $now = null): void {
+		throw new UnsupportedOperationException();
 	}
 }
