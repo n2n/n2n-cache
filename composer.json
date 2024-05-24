@@ -25,6 +25,7 @@
 	"require" : {
         "php": ">=8.1",
 		"n2n/n2n-util" : "~7.4",
+		"n2n/n2n-concurrency" : "~7.4",
         "ext-ctype": "*",
         "ext-mbstring": "*"
     },
