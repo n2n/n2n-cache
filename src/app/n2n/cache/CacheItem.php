@@ -19,20 +19,22 @@
  * Bert Hofmänner.......: Idea, Frontend UI, Community Leader, Marketing
  * Thomas Günther.......: Developer, Hangar
  */
+
 namespace n2n\cache;
 
-use n2n\util\type\ArgUtils;
-
 class CacheItem {
-	private $name;
-	private $characteristics;
-	public $data;
+	private string $name;
+	private array $characteristics;
+	public mixed $data;
+	private \DateTimeInterface $createdAt;
+	private ?\DateTimeInterface $expiresAt;
+
 	/**
 	 * @param string $name
 	 * @param string[] $characteristics
 	 * @param mixed $data
 	 */
-	public function __construct($name, array $characteristics, $data) {
+	public function __construct(string $name, array $characteristics, mixed $data) {
 		$this->name = $name;
 		$this->setCharacteristics($characteristics);
 		$this->data = $data;
@@ -41,26 +43,28 @@ class CacheItem {
 	/**
 	 * @return string
 	 */
-	public function getName() {
+	public function getName(): string {
 		return $this->name;
 	}
+
 	/**
 	 * @param string $name
 	 */
-	public function setName($name) {
+	public function setName(string $name): void {
 		$this->name = $name;
 	}
+
 	/**
 	 * @return array
 	 */
-	public function getCharacteristics() {
+	public function getCharacteristics(): array {
 		return $this->characteristics;
 	}
 
 	/**
 	 * @param array $characteristics
 	 */
-	public function setCharacteristics(array $characteristics) {
+	public function setCharacteristics(array $characteristics): void {
 //		ArgUtils::valArray($characteristics, 'string');
 		$this->characteristics = $characteristics;
 	}
@@ -69,7 +73,7 @@ class CacheItem {
 	 * @param array $characteristics
 	 * @return bool
 	 */
-	function matchesCharacteristics(array $characteristics) {
+	function matchesCharacteristics(array $characteristics): bool {
 		return $this->characteristics === $characteristics;
 	}
 
@@ -77,7 +81,7 @@ class CacheItem {
 	 * @param array $characteristicNeedles
 	 * @return bool
 	 */
-	function containsCharacteristics(array $characteristicNeedles) {
+	function containsCharacteristics(array $characteristicNeedles): bool {
 		foreach ($characteristicNeedles as $key => $value) {
 			if (!array_key_exists($key, $this->characteristics)
 					|| $value !== $this->characteristics[$key]) {
@@ -91,13 +95,34 @@ class CacheItem {
 	/**
 	 * @return mixed
 	 */
-	public function getData() {
+	public function getData(): mixed {
 		return $this->data;
 	}
+
 	/**
 	 * @param mixed $data
 	 */
-	public function setData($data) {
+	public function setData(mixed $data): void {
 		$this->data = $data;
 	}
+
+	// TODO: DboCacheEngine::CREATED_AT_COLUMN and DboCacheEngine::EXPIRES_AT_COLUMN (int seconds) in DateTimeImmutable/DateInterval umwandeln und übergeben. or remove
+	function getCreatedAt(): ?\DateTimeInterface {
+		return $this->createdAt;
+	}
+
+	function setCreatedAt(\DateTimeInterface $createdAt): static {
+		$this->createdAt = $createdAt;
+		return $this;
+	}
+
+	function getExpiresAt(): ?\DateTimeInterface {
+		return $this->expiresAt;
+	}
+
+	public function setExpiresAt(?\DateTimeInterface $expiresAt): static {
+		$this->expiresAt = $expiresAt;
+		return $this;
+	}
+
 }

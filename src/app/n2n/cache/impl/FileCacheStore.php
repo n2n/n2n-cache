@@ -31,7 +31,6 @@ use n2n\util\StringUtils;
 use n2n\util\UnserializationFailedException;
 use n2n\cache\CorruptedCacheStoreException;
 use n2n\util\io\IoException;
-use n2n\util\io\stream\impl\FileResourceStream;
 use n2n\util\io\fs\FileOperationException;
 use n2n\util\ex\UnsupportedOperationException;
 use n2n\util\ex\ExUtils;
@@ -88,10 +87,7 @@ class FileCacheStore implements CacheStore {
 	public function getFilePerm() {
 		return $this->filePerm;
 	}
-	/**
-	 * @param string $filePath
-	 * @return CacheFileLock|null
-	 */
+
 	private function buildReadLock(FsPath $filePath): Lock {
 		$lockFilePath = new FsPath($filePath . self::LOCK_FILE_SUFFIX);
 //		if (!$lockFilePath->exists()) {
@@ -106,12 +102,9 @@ class FileCacheStore implements CacheStore {
 	}
 	/**
 	 * @param string $filePath
-	 * @return CacheFileLock
+	 * @return Lock
 	 */
 	private function createWriteLock(string $filePath): Lock {
-		IllegalStateException::assertTrue($this->filePerm !== null,
-				'Can not create write lock if no file permission is defined for FileCacheStore.');
-
 		$lockFilePath = new FsPath($filePath . self::LOCK_FILE_SUFFIX);
 //		$lock = new CacheFileLock(new FileResourceStream($lockFilePath, 'w', LOCK_EX));
 		$lock = Sync::byFileLock($lockFilePath);
@@ -193,10 +186,10 @@ class FileCacheStore implements CacheStore {
 	/**
 	 * @param $name
 	 * @param FsPath $filePath
-	 * @return CacheItem null, if filePath no longer available.
+	 * @return CacheItem|null null, if filePath no longer available.
 	 * @throws CorruptedCacheStoreException
 	 */
-	private function read($name, FsPath $filePath) {
+	private function read($name, FsPath $filePath): ?CacheItem {
 		if (!$filePath->exists()) return null;
 
 		$lock = $this->buildReadLock($filePath);

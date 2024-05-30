@@ -55,7 +55,7 @@ interface CacheStore {
 	 * @param string $name
 	 * @param string[] $characteristics
 	 */
-	public function remove(string $name, array $characteristics);
+	public function remove(string $name, array $characteristics): void;
 
 	/**
 	 * Returns the CacheItems which has been stored with exactly this name and contains all the passed characteristicNeedles.
@@ -76,7 +76,7 @@ interface CacheStore {
 	 * @param string|null $name
 	 * @param string[] $characteristicNeedles
 	 */
-	public function removeAll(?string $name, array $characteristicNeedles = null);
+	public function removeAll(?string $name, array $characteristicNeedles = null): void;
 
 	/**
 	 * Remove all CacheItems that are considered old by the ttl parameter provided when stored (see {@link self::store()})
@@ -97,5 +97,5 @@ interface CacheStore {
 	/**
 	 * Removes all stored CacheItems.
 	 */
-	public function clear();
+	public function clear(): void;
 }
