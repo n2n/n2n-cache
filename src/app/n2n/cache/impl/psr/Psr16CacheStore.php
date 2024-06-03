@@ -50,6 +50,10 @@ class Psr16CacheStore implements CacheInterface {
 	 */
 	public function set(string $key, mixed $value, \DateInterval|int $ttl = null): bool {
 		try {
+			if (is_int($ttl)) {
+				$ttl = new \DateInterval('');
+				$ttl->s = $ttl;
+			}
 			$this->cacheStore->store($key, [], $value, $ttl);
 			return true;
 		} catch (UnsupportedCacheStoreOperationException) {
@@ -98,6 +102,9 @@ class Psr16CacheStore implements CacheInterface {
 	 */
 	public function setMultiple(iterable $values, \DateInterval|int $ttl = null): bool {
 		try {
+			foreach ($values as $key => $value) {
+				$this->set($key, $value, $ttl);
+			}
 			return true;
 		} catch (CacheStoreOperationFailedException $e) {
 			return false;
@@ -108,14 +115,15 @@ class Psr16CacheStore implements CacheInterface {
 	 * @inheritDoc
 	 */
 	public function deleteMultiple(iterable $keys): bool {
-		foreach ($keys as $key) {
-			try {
+		try {
+			foreach ($keys as $key) {
 				$this->cacheStore->remove($key, []);
-			} catch (CacheStoreOperationFailedException $e) {
-				return false;
 			}
+			return true;
+		} catch (CacheStoreOperationFailedException $e) {
+			return false;
 		}
-		return true;
+
 	}
 
 	/**

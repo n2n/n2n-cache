@@ -4,7 +4,6 @@ namespace n2n\cache\impl\psr;
 
 use PHPUnit\Framework\TestCase;
 use n2n\util\io\fs\FsPath;
-use n2n\cache\impl\psr\Psr16CacheStore;
 use n2n\cache\impl\CacheStores;
 use n2n\cache\impl\FileCacheStore;
 
@@ -26,10 +25,11 @@ class Psr16FileCacheStoreTest extends TestCase {
 
 		$store->set('test.test', ['k1' => 'v1']);
 
-		$this->assertEquals(['k1' => 'v1'], $store->get('test.test', [])->getData());
+		$this->assertEquals(['k1' => 'v1'], $store->get('test.test', 'ValueIfNotFound'));
 
 		$store->delete('test.test');
-		$this->assertNull($store->get('test.test', []));
+		$this->assertNull($store->get('test.test', null));
+		$this->assertEquals('ValueIfNotFound', $store->get('test.test', 'ValueIfNotFound'));
 	}
 
 
@@ -40,13 +40,13 @@ class Psr16FileCacheStoreTest extends TestCase {
 		$store->set('test.test', ['k3' => 'v1', 'k4' => 'v2']);
 		$store->set('test.test2', ['k3' => 'v1', 'k4' => 'v2']);
 
-		$this->assertEquals(['k3' => 'v1', 'k4' => 'v2'], $store->get('test.test', [])->getData());
-		$this->assertEquals(['k3' => 'v1', 'k4' => 'v2'], $store->get('test.test2', [])->getData());
+		$this->assertEquals(['k3' => 'v1', 'k4' => 'v2'], $store->get('test.test', 'ValueIfNotFound'));
+		$this->assertEquals(['k3' => 'v1', 'k4' => 'v2'], $store->get('test.test2', 'ValueIfNotFound'));
 
 		$store->deleteMultiple(['test.test', 'test.test2']);
 
-		$this->assertNull($store->get('test.test', []));
-		$this->assertNull($store->get('test.test2', []));
+		$this->assertNull($store->get('test.test', null));
+		$this->assertNull($store->get('test.test2', null));
 	}
 
 	function testGetMultiple() {
@@ -55,9 +55,10 @@ class Psr16FileCacheStoreTest extends TestCase {
 		$store->set('test.test', ['k1' => 'v1']);
 		$store->set('test.test2', ['k3' => 'v1', 'k4' => 'v2']);
 
-		$getMultiple = $store->getMultiple(['test.test', 'test.test2'], []);
-		$this->assertEquals(['k1' => 'v1'], $getMultiple[0]->getData());
-		$this->assertEquals(['k3' => 'v1', 'k4' => 'v2'], $getMultiple[1]->getData());
+		$getMultiple = $store->getMultiple(['test.test', 'test.test2', 'test.test3'], 'ValueIfNotFound');
+		$this->assertEquals(['k1' => 'v1'], $getMultiple[0]);
+		$this->assertEquals(['k3' => 'v1', 'k4' => 'v2'], $getMultiple[1]);
+		$this->assertEquals('ValueIfNotFound', $getMultiple[2]);
 
 	}
 
@@ -70,8 +71,8 @@ class Psr16FileCacheStoreTest extends TestCase {
 
 		$store->clear();
 
-		$this->assertNull($store->get('test.test', []));
-		$this->assertNull($store->get('test.test1', []));
-		$this->assertNull($store->get('test.test2', []));
+		$this->assertNull($store->get('test.test', null));
+		$this->assertNull($store->get('test.test1', null));
+		$this->assertNull($store->get('test.test2', null));
 	}
 }
