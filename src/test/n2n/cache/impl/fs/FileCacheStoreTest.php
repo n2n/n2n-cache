@@ -1,11 +1,9 @@
 <?php
 
-namespace n2n\cache\impl;
+namespace n2n\cache\impl\fs;
 
 use PHPUnit\Framework\TestCase;
 use n2n\util\io\fs\FsPath;
-use n2n\util\io\stream\impl\FileResourceStream;
-use n2n\util\io\fs\CouldNotAchieveFlockException;
 
 class FileCacheStoreTest extends TestCase {
 	private FsPath $tempDirFsPath;

@@ -386,7 +386,7 @@ class DboCacheEngine {
 	}
 
 	private function checkIfRowIsExpired(array $row, int $expiredByTime): bool {
-		return isset($row[self::EXPIRES_AT_COLUMN]) && $expiredByTime <= $row[self::EXPIRES_AT_COLUMN];
+		return isset($row[self::EXPIRES_AT_COLUMN]) && $row[self::EXPIRES_AT_COLUMN] <= $expiredByTime;
 	}
 
 	private function ensureNotInTransaction(): void {

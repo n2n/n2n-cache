@@ -26,8 +26,6 @@ class CacheItem {
 	private string $name;
 	private array $characteristics;
 	public mixed $data;
-	private \DateTimeInterface $createdAt;
-	private ?\DateTimeInterface $expiresAt;
 
 	/**
 	 * @param string $name
@@ -104,25 +102,6 @@ class CacheItem {
 	 */
 	public function setData(mixed $data): void {
 		$this->data = $data;
-	}
-
-	// TODO: DboCacheEngine::CREATED_AT_COLUMN and DboCacheEngine::EXPIRES_AT_COLUMN (int seconds) in DateTimeImmutable/DateInterval umwandeln und übergeben. or remove
-	function getCreatedAt(): ?\DateTimeInterface {
-		return $this->createdAt;
-	}
-
-	function setCreatedAt(\DateTimeInterface $createdAt): static {
-		$this->createdAt = $createdAt;
-		return $this;
-	}
-
-	function getExpiresAt(): ?\DateTimeInterface {
-		return $this->expiresAt;
-	}
-
-	public function setExpiresAt(?\DateTimeInterface $expiresAt): static {
-		$this->expiresAt = $expiresAt;
-		return $this;
 	}
 
 }

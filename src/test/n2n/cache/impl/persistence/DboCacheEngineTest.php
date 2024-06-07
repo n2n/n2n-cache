@@ -595,6 +595,41 @@ class DboCacheEngineTest extends TestCase {
 	/**
 	 * @throws DboException
 	 */
+	function testExpiredRead(): void {
+		$engine = $this->createEngine();
+		$time = time();
+		$futureTime = $time + 1000;
+		$future2Time = $time + 2000;
+
+		$engine->createDataTable();
+		$engine->createCharacteristicTable();
+
+		$engine->write('holeradio-expired1', ['key' => 'value-expired', 'o-key' => 'o-value-expired'], 'data-expired1', $time, $time);
+		$engine->write('holeradio-expired2', ['key' => 'value-expired', 'o-key' => 'o-value-expired'], 'data-expired2', $time, $futureTime);
+		$engine->write('holeradio1', ['key' => 'value1', 'o-key' => 'o-value'], 'data1', $time, $future2Time);
+		$engine->write('holeradio2', ['key' => 'value2', 'o-key' => 'o-value'], 'data2', $futureTime, null);
+		$engine->write('holeradio3', ['key' => 'value3', 'o-key' => 'o-value'], 'data3', $future2Time, null);
+
+		$this->assertCount(5, $this->pdoUtil->select('data', null));
+		$this->assertCount(10, $this->pdoUtil->select('characteristic', null));
+
+		$this->assertNull($engine->read('holeradio-expired1', ['key' => 'value-expired', 'o-key' => 'o-value-expired'], $futureTime));
+		$this->assertNull($engine->read('holeradio-expired1', ['key' => 'value-expired', 'o-key' => 'o-value-expired'], $futureTime));
+		$this->assertEquals('data1', $engine->read('holeradio1', ['key' => 'value1', 'o-key' => 'o-value'], $futureTime)['data']);
+		$this->assertEquals('data2', $engine->read('holeradio2', ['key' => 'value2', 'o-key' => 'o-value'], $futureTime)['data']);
+		$this->assertEquals('data3',$engine->read('holeradio3', ['key' => 'value3', 'o-key' => 'o-value'], $futureTime)['data']);
+
+		$rows = $this->pdoUtil->select('data', null);
+		$this->assertCount(3, $rows);
+
+		$this->assertEquals('holeradio1', $rows[0]['name']);
+		$this->assertEquals('holeradio2', $rows[1]['name']);
+		$this->assertEquals('holeradio3', $rows[2]['name']);
+	}
+
+	/**
+	 * @throws DboException
+	 */
 	function testCreated(): void {
 		$engine = $this->createEngine();
 		$time = time();

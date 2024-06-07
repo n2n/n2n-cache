@@ -24,14 +24,14 @@ namespace n2n\cache\impl\psr;
 
 use n2n\cache\UnsupportedCacheStoreOperationException;
 use n2n\cache\CacheStore;
-use n2n\cache\CacheItem;
 use Psr\SimpleCache\CacheInterface;
 use n2n\cache\CacheStoreOperationFailedException;
+use n2n\util\ex\ExUtils;
 
 /**
  * If any operation failed due to CacheStore related errors, a CacheStoreOperationFailedException should be thrown.
  */
-class Psr16CacheStore implements CacheInterface {
+class Psr16Decorator implements CacheInterface {
 	private CacheStore $cacheStore;
 
 	public function __construct(CacheStore $cacheStore) {
@@ -48,13 +48,14 @@ class Psr16CacheStore implements CacheInterface {
 	/**
 	 * @inheritDoc
 	 */
-	public function set(string $key, mixed $value, \DateInterval|int $ttl = null): bool {
+	public function set(string $key, mixed $value, \DateInterval|int|null $ttl = null): bool {
 		try {
+			$ttlDateInterval = $ttl;
 			if (is_int($ttl)) {
-				$ttl = new \DateInterval('');
-				$ttl->s = $ttl;
+				$ttlDateInterval = ExUtils::try(fn() => new \DateInterval('PT' . abs($ttl) . 'S'));
+				$ttlDateInterval->invert = $ttl < 0 ? 1 : 0; //invert can not be set by constructor
 			}
-			$this->cacheStore->store($key, [], $value, $ttl);
+			$this->cacheStore->store($key, [], $value, $ttlDateInterval, new \DateTimeImmutable('now'));
 			return true;
 		} catch (UnsupportedCacheStoreOperationException) {
 			return false;

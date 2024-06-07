@@ -19,7 +19,7 @@
  * Bert Hofmänner.......: Idea, Frontend UI, Community Leader, Marketing
  * Thomas Günther.......: Developer, Hangar
  */
-namespace n2n\cache\impl;
+namespace n2n\cache\impl\fs;
 
 use n2n\cache\CacheStore;
 use n2n\util\io\fs\FsPath;
@@ -37,6 +37,8 @@ use n2n\util\ex\ExUtils;
 use n2n\concurrency\sync\impl\Sync;
 use n2n\concurrency\sync\LockMode;
 use n2n\concurrency\sync\Lock;
+use n2n\cache\CacheStoreOperationFailedException;
+use n2n\util\DateUtils;
 
 class FileCacheStore implements CacheStore {
 	const CHARACTERISTIC_DELIMITER = '.';
@@ -153,34 +155,35 @@ class FileCacheStore implements CacheStore {
 			\DateTimeInterface $now = null): void {
 		$nameDirPath = $this->buildNameDirPath($name);
 		if (!$nameDirPath->isDir()) {
-			if ($this->dirPerm === null) {
-				throw new IllegalStateException('No directory permission set for FileCacheStore.');
-			}
-
 			$parentDirPath = $nameDirPath->getParent();
 			if (!$parentDirPath->isDir()) {
 				$parentDirPath->mkdirs($this->dirPerm);
-				// chmod after mkdirs because of possible umask restrictions.
-				$parentDirPath->chmod($this->dirPerm);
+				if ($this->dirPerm !== null) {
+					// chmod after mkdirs because of possible umask restrictions.
+					$parentDirPath->chmod($this->dirPerm);
+				}
 			}
 
 			$nameDirPath->mkdirs($this->dirPerm);
-			// chmod after mkdirs because of possible umask restrictions.
-			$nameDirPath->chmod($this->dirPerm);
-		}
-
-		if ($this->filePerm === null) {
-			throw new IllegalStateException('No file permission set for FileCacheStore.');
+			if ($this->dirPerm !== null) {
+				// chmod after mkdirs because of possible umask restrictions.
+				$nameDirPath->chmod($this->dirPerm);
+			}
 		}
 
 		$filePath = $nameDirPath->ext($this->buildFileName($characteristics));
 
 		$lock = $this->createWriteLock((string) $filePath);
-		IoUtils::putContentsSafe($filePath->__toString(), serialize(array('characteristics' => $characteristics,
-				'data' => $data)));
+		try {
+			IoUtils::putContentsSafe($filePath->__toString(), serialize(array('characteristics' => $characteristics,
+					'data' => $data)));
+		} catch (IoException $e) {
+			throw new CacheStoreOperationFailedException($e->getMessage(), previous: $e);
+		}
 
-
-		$filePath->chmod($this->filePerm);
+		if ($this->filePerm !== null) {
+			$filePath->chmod($this->filePerm);
+		}
 		$lock->release();
 	}
 	/**
@@ -350,6 +353,6 @@ class FileCacheStore implements CacheStore {
 	}
 
 	public function garbageCollect(\DateInterval $maxLifetime = null, \DateTimeInterface $now = null): void {
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException('FileCacheStore does not support garbage collection.');
 	}
 }

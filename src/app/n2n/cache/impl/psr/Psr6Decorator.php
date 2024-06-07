@@ -31,7 +31,7 @@ use n2n\util\type\ArgUtils;
 /**
  * If any operation failed due to CacheStore related errors, a CacheStoreOperationFailedException should be thrown.
  */
-class Psr6CacheStore implements CacheItemPoolInterface {
+class Psr6Decorator implements CacheItemPoolInterface {
 	private CacheStore $cacheStore;
 	/**
 	 * @var CacheItemInterface[]
@@ -51,7 +51,6 @@ class Psr6CacheStore implements CacheItemPoolInterface {
 		if ($cacheItem === null) {
 			return new Psr6CacheItem($key, null, false);
 		}
-
 		return new Psr6CacheItem($key, $cacheItem->getData(), true);
 	}
 

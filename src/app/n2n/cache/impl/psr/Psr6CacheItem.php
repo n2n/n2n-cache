@@ -2,14 +2,13 @@
 
 namespace n2n\cache\impl\psr;
 
-use n2n\cache\CacheItem;
 use Psr\Cache\CacheItemInterface;
+use n2n\util\ex\ExUtils;
 
 class Psr6CacheItem implements CacheItemInterface {
 
-	private int|null|\DateInterval $ttl;
-	private ?\DateTimeInterface $expiresAt;
-
+	private int|null|\DateInterval $ttl = null;
+	private ?\DateTimeInterface $expiresAt = null;
 	function __construct(private string $key, private mixed $data, private bool $hit) {
 
 	}
@@ -47,13 +46,12 @@ class Psr6CacheItem implements CacheItemInterface {
 	 * @inheritDoc
 	 */
 	public function expiresAt(?\DateTimeInterface $expiration): static {
-		$now = new \DateTime();
 		$this->expiresAt = $expiration;
 		$this->ttl = null;
 		return $this;
 	}
 
-	function getExpiresAt(): ?\DateTimeInterface {
+	public function getExpiresAt(): ?\DateTimeInterface {
 		return $this->expiresAt;
 	}
 
@@ -61,17 +59,18 @@ class Psr6CacheItem implements CacheItemInterface {
 	 * @inheritDoc
 	 */
 	public function expiresAfter(\DateInterval|int|null $ttl): static {
+		$ttlDateInterval = $ttl;
 		if (is_int($ttl)) {
-			$ttl = new \DateInterval('');
-			$ttl->s = $ttl;
+			$ttlDateInterval = ExUtils::try(fn() => new \DateInterval('PT' . abs($ttl) . 'S'));
+			$ttlDateInterval->invert = $ttl < 0 ? 1 : 0; //invert can not be set by constructor
 		}
 
-		$this->ttl = $ttl;
+		$this->ttl = $ttlDateInterval;
 		$this->expiresAt = null;
 		return $this;
 	}
 
-	function getExpiresAfter(): \DateInterval|null {
+	public function getExpiresAfter(): \DateInterval|null {
 		return $this->ttl;
 	}
 

@@ -1,11 +1,9 @@
 <?php
 
-namespace n2n\cache\impl;
+namespace n2n\cache\impl\ephemeral;
 
 use n2n\cache\CacheItem;
 use n2n\cache\CacheStore;
-use n2n\cache\CorruptedCacheStoreException;
-use n2n\util\io\IoUtils;
 
 class EphemeralCacheStore implements CacheStore {
 	/**

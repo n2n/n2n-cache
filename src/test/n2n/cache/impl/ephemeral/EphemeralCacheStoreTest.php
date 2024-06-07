@@ -1,8 +1,7 @@
 <?php
-namespace n2n\cache\impl;
+namespace n2n\cache\impl\ephemeral;
 
 use PHPUnit\Framework\TestCase;
-use n2n\cache\CacheItem;
 
 class EphemeralCacheStoreTest extends TestCase {
 	private EphemeralCacheStore $ephemeralCacheStore;
