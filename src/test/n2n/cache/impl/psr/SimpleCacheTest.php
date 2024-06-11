@@ -436,7 +436,6 @@ class SimpleCacheTest extends TestCase {
 		}
 //		$this->expectException('Psr\SimpleCache\InvalidArgumentException');
 		$this->expectException(\Throwable::class);
-		var_dump($key);
 		$this->cache->get($key);
 	}
 
@@ -558,7 +557,6 @@ class SimpleCacheTest extends TestCase {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
 		}
 
-		var_dump($ttl);
 //		$this->expectException('Psr\SimpleCache\InvalidArgumentException');
 		$this->expectException(\Throwable::class);
 		$this->cache->set('key', 'value', $ttl);
