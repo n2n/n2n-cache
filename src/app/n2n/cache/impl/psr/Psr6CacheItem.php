@@ -7,10 +7,9 @@ use n2n\util\ex\ExUtils;
 
 class Psr6CacheItem implements CacheItemInterface {
 
-	private int|null|\DateInterval $ttl = null;
 	private ?\DateTimeInterface $expiresAt = null;
-	function __construct(private string $key, private mixed $data, private bool $hit) {
 
+	function __construct(private string $key, private mixed $data, private bool $hit) {
 	}
 
 	/**
@@ -24,14 +23,26 @@ class Psr6CacheItem implements CacheItemInterface {
 	 * @inheritDoc
 	 */
 	public function get(): mixed {
-		return $this->data;
+		return $this->isHit() ? $this->data : null;
 	}
 
 	/**
 	 * @inheritDoc
 	 */
 	public function isHit(): bool {
-		return $this->hit;
+		if (!$this->hit) {
+			return false;
+		}
+
+		if ($this->expiresAt === null) {
+			return true;
+		}
+
+		return $this->currentTime() < $this->expiresAt;
+	}
+
+	public function setHit(bool $hit): void {
+		$this->hit = $hit;
 	}
 
 	/**
@@ -39,6 +50,7 @@ class Psr6CacheItem implements CacheItemInterface {
 	 */
 	public function set(mixed $value): static {
 		$this->data = $value;
+		$this->hit = true;
 		return $this;
 	}
 
@@ -47,7 +59,6 @@ class Psr6CacheItem implements CacheItemInterface {
 	 */
 	public function expiresAt(?\DateTimeInterface $expiration): static {
 		$this->expiresAt = $expiration;
-		$this->ttl = null;
 		return $this;
 	}
 
@@ -59,30 +70,27 @@ class Psr6CacheItem implements CacheItemInterface {
 	 * @inheritDoc
 	 */
 	public function expiresAfter(\DateInterval|int|null $ttl): static {
+		if ($ttl === null) {
+			$this->expiresAt = null;
+			return $this;
+		}
 		$ttlDateInterval = $ttl;
 		if (is_int($ttl)) {
 			$ttlDateInterval = ExUtils::try(fn() => new \DateInterval('PT' . abs($ttl) . 'S'));
 			$ttlDateInterval->invert = $ttl < 0 ? 1 : 0; //invert can not be set by constructor
 		}
-
-		$this->ttl = $ttlDateInterval;
-		$this->expiresAt = null;
+		$this->expiresAt = $this->currentTime()->add($ttlDateInterval);
 		return $this;
 	}
 
-	public function getExpiresAfter(): \DateInterval|null {
-		return $this->ttl;
+	function calcTtl(): ?\DateInterval {
+		if ($this->expiresAt !== null) {
+			return $this->currentTime()->diff($this->expiresAt);
+		}
+		return null;
 	}
 
-	function calcTtl(\DateTimeInterface $now): ?\DateInterval {
-		if ($this->ttl !== null) {
-			return $this->ttl;
-		}
-
-		if ($this->expiresAt !== null) {
-			return $now->diff($this->expiresAt);
-		}
-
-		return null;
+	protected function currentTime(): \DateTime {
+		return new \DateTime('now');
 	}
 }

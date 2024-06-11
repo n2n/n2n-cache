@@ -114,14 +114,10 @@ class Psr6DecoratorTest extends TestCase {
 		$item = $pool->getItem('key');
 		$item->set('holeradio');
 		$pool->saveDeferred($item);
+
 		$item2 = $pool->getItem('key2');
 		$item2->set('holeradio2');
 		$pool->saveDeferred($item2);
-
-		$item = $pool->getItem('key');
-		$this->assertFalse($item->isHit());
-		$item2 = $pool->getItem('key2');
-		$this->assertFalse($item2->isHit());
 
 		$pool->commit();
 
@@ -135,8 +131,8 @@ class Psr6DecoratorTest extends TestCase {
 	 * @throws InvalidArgumentException
 	 */
 	function testExpiresWithHelpOfDboCacheStoreReadCheckIfRowIsExpired(): void {
-		$DboStore = (new DboCacheStore($this->pdo))->setPdoCacheDataSize(DboCacheDataSize::STRING);
-		$pool = PsrDecorators::psr6($DboStore);
+		$dboCacheStore = (new DboCacheStore($this->pdo))->setPdoCacheDataSize(DboCacheDataSize::STRING);
+		$pool = PsrDecorators::psr6($dboCacheStore);
 		$ttl = new \DateInterval('PT300S');
 		$ttlNeg = new \DateInterval('PT12H');
 		$now = new \DateTimeImmutable('now');

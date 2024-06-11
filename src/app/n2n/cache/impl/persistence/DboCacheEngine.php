@@ -106,7 +106,7 @@ class DboCacheEngine {
 			return $this->characteristicSelectSql;
 		}
 
-		$builder = $this->dbo->createSelectStatementBuilder($this->dbo);
+		$builder = $this->dbo->createSelectStatementBuilder();
 		$builder->addFrom(QueryItems::table($this->characteristicTableName, 'c'));
 		$comparator = $builder->getWhereComparator();
 
@@ -134,7 +134,7 @@ class DboCacheEngine {
 			return $this->characteristicInsertSql;
 		}
 
-		$builder = $this->dbo->createInsertStatementBuilder($this->dbo);
+		$builder = $this->dbo->createInsertStatementBuilder();
 		$builder->setTable($this->characteristicTableName);
 		$builder->addColumn(QueryItems::column(self::NAME_COLUMN), QueryItems::placeMarker(self::NAME_COLUMN));
 		$builder->addColumn(QueryItems::column(self::CHARACTERISTICS_COLUMN),

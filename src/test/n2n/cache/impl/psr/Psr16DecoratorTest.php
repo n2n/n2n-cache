@@ -80,9 +80,9 @@ class Psr16DecoratorTest extends TestCase {
 		$store->set('test.test2', ['k3' => 'v1', 'k4' => 'v2']);
 
 		$getMultiple = $store->getMultiple(['test.test', 'test.test2', 'test.test3'], 'ValueIfNotFound');
-		$this->assertEquals(['k1' => 'v1'], $getMultiple[0]);
-		$this->assertEquals(['k3' => 'v1', 'k4' => 'v2'], $getMultiple[1]);
-		$this->assertEquals('ValueIfNotFound', $getMultiple[2]);
+		$this->assertEquals(['k1' => 'v1'], $getMultiple['test.test']);
+		$this->assertEquals(['k3' => 'v1', 'k4' => 'v2'], $getMultiple['test.test2']);
+		$this->assertEquals('ValueIfNotFound', $getMultiple['test.test3']);
 
 	}
 
@@ -135,8 +135,8 @@ class Psr16DecoratorTest extends TestCase {
 	 * @throws InvalidArgumentException
 	 */
 	function testExpiresWithHelpOfDboCacheStoreReadCheckIfRowIsExpired(): void {
-		$DboStore = (new DboCacheStore($this->pdo))->setPdoCacheDataSize(DboCacheDataSize::STRING);
-		$store = PsrDecorators::psr16($DboStore);
+		$dboCacheStore = (new DboCacheStore($this->pdo))->setPdoCacheDataSize(DboCacheDataSize::STRING);
+		$store = PsrDecorators::psr16($dboCacheStore);
 		$ttl = new \DateInterval('PT300S');
 		$ttlNeg = new \DateInterval('PT12H');
 		$ttlNeg->invert = true;

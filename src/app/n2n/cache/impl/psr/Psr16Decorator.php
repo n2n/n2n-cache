@@ -21,12 +21,12 @@
  */
 
 namespace n2n\cache\impl\psr;
-
 use n2n\cache\UnsupportedCacheStoreOperationException;
 use n2n\cache\CacheStore;
 use Psr\SimpleCache\CacheInterface;
 use n2n\cache\CacheStoreOperationFailedException;
 use n2n\util\ex\ExUtils;
+use n2n\util\StringUtils;
 
 /**
  * If any operation failed due to CacheStore related errors, a CacheStoreOperationFailedException should be thrown.
@@ -39,9 +39,24 @@ class Psr16Decorator implements CacheInterface {
 	}
 
 	/**
+	 * @throws Psr16InvalidArgumentException
+	 */
+	private function valKey(mixed $key): void {
+		$invalidCharacters = '{}()/\@:'; //psr-16 define this chars as invalid "{}()/\@:"
+
+		//psr-16 expect a string with at least one char
+		if (!is_string($key) || 1 === preg_match('#[' . preg_quote($invalidCharacters) . ']#', $key) || $key === ''
+				|| $key !== StringUtils::convertNonPrintables($key)) {
+			throw new Psr16InvalidArgumentException('The provided key is not valid: '
+					. StringUtils::strOf($key, true));
+		}
+	}
+
+	/**
 	 * @inheritDoc
 	 */
 	public function get(string $key, mixed $default = null): mixed {
+		$this->valKey($key);
 		return $this->cacheStore->get($key, [])?->getData() ?? $default;
 	}
 
@@ -49,12 +64,15 @@ class Psr16Decorator implements CacheInterface {
 	 * @inheritDoc
 	 */
 	public function set(string $key, mixed $value, \DateInterval|int|null $ttl = null): bool {
+		$this->valKey($key);
 		try {
 			$ttlDateInterval = $ttl;
 			if (is_int($ttl)) {
+				/** @var $ttlDateInterval \DateInterval */
 				$ttlDateInterval = ExUtils::try(fn() => new \DateInterval('PT' . abs($ttl) . 'S'));
 				$ttlDateInterval->invert = $ttl < 0 ? 1 : 0; //invert can not be set by constructor
 			}
+
 			$this->cacheStore->store($key, [], $value, $ttlDateInterval, new \DateTimeImmutable('now'));
 			return true;
 		} catch (UnsupportedCacheStoreOperationException) {
@@ -66,6 +84,7 @@ class Psr16Decorator implements CacheInterface {
 	 * @inheritDoc
 	 */
 	public function delete(string $key): bool {
+		$this->valKey($key);
 		try {
 			$this->cacheStore->remove($key, []);
 			return true;
@@ -91,9 +110,10 @@ class Psr16Decorator implements CacheInterface {
 	 * @inheritDoc
 	 */
 	public function getMultiple(iterable $keys, mixed $default = null): iterable {
+		array_walk($keys, fn ($key) => $this->valKey($key));
 		$items = [];
 		foreach ($keys as $key) {
-			$items[] = $this->get($key, $default);
+			$items[$key] = $this->get($key, $default);
 		}
 		return $items;
 	}
@@ -101,7 +121,7 @@ class Psr16Decorator implements CacheInterface {
 	/**
 	 * @inheritDoc
 	 */
-	public function setMultiple(iterable $values, \DateInterval|int $ttl = null): bool {
+	public function setMultiple(iterable $values, \DateInterval|int|null $ttl = null): bool {
 		try {
 			foreach ($values as $key => $value) {
 				$this->set($key, $value, $ttl);
@@ -116,6 +136,7 @@ class Psr16Decorator implements CacheInterface {
 	 * @inheritDoc
 	 */
 	public function deleteMultiple(iterable $keys): bool {
+		array_walk($keys, fn ($key) => $this->valKey($key));
 		try {
 			foreach ($keys as $key) {
 				$this->cacheStore->remove($key, []);
@@ -131,6 +152,7 @@ class Psr16Decorator implements CacheInterface {
 	 * @inheritDoc
 	 */
 	public function has(string $key): bool {
+		$this->valKey($key);
 		return ($this->cacheStore->get($key, []) !== null);
 	}
 }
