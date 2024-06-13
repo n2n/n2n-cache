@@ -65,14 +65,15 @@ class Psr16Decorator implements CacheInterface {
 	 */
 	public function set(string $key, mixed $value, \DateInterval|int|null $ttl = null): bool {
 		$this->valKey($key);
-		try {
-			$ttlDateInterval = $ttl;
-			if (is_int($ttl)) {
-				/** @var $ttlDateInterval \DateInterval */
-				$ttlDateInterval = ExUtils::try(fn() => new \DateInterval('PT' . abs($ttl) . 'S'));
-				$ttlDateInterval->invert = $ttl < 0 ? 1 : 0; //invert can not be set by constructor
-			}
 
+		$ttlDateInterval = $ttl;
+		if (is_int($ttl)) {
+			/** @var \DateInterval $ttlDateInterval */
+			$ttlDateInterval = ExUtils::try(fn() => new \DateInterval('PT' . abs($ttl) . 'S'));
+			$ttlDateInterval->invert = $ttl < 0 ? 1 : 0; //invert can not be set by constructor
+		}
+
+		try {
 			$this->cacheStore->store($key, [], $value, $ttlDateInterval, new \DateTimeImmutable('now'));
 			return true;
 		} catch (UnsupportedCacheStoreOperationException) {

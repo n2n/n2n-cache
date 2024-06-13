@@ -35,7 +35,7 @@ use n2n\util\StringUtils;
 class Psr6Decorator implements CacheItemPoolInterface {
 	private CacheStore $cacheStore;
 	/**
-	 * @var CacheItemInterface[]
+	 * @var Psr6CacheItem[]
 	 */
 	private array $deferredItems = [];
 
@@ -61,18 +61,23 @@ class Psr6Decorator implements CacheItemPoolInterface {
 		}
 	}
 
+	private function checkIfNotExpired(Psr6CacheItem $cacheItem): bool {
+		$expiresAt = $cacheItem->getExpiresAt();
+		return $expiresAt === null || $expiresAt > new \DateTimeImmutable();
+	}
+
 	/**
 	 * @inheritDoc
 	 */
 	public function getItem(string $key): CacheItemInterface {
 		$this->valKey($key);
-		if (array_key_exists($key, $this->deferredItems)) {
-			if ($this->deferredItems[$key]->getExpiresAt() === null || $this->deferredItems[$key]->getExpiresAt() > new \DateTimeImmutable()) {
-				return new Psr6CacheItem($key, $this->deferredItems[$key]->get(), true);
-			}
-		}
-		$cacheItem = $this->cacheStore->get($key, []);
 
+		if (isset($this->deferredItems[$key])) {
+			$hit = $this->checkIfNotExpired($this->deferredItems[$key]);
+			return new Psr6CacheItem($key,$hit ? $this->deferredItems[$key]->get() : null, $hit);
+		}
+
+		$cacheItem = $this->cacheStore->get($key, []);
 		if ($cacheItem === null) {
 			return new Psr6CacheItem($key, null, false);
 		}
@@ -84,11 +89,11 @@ class Psr6Decorator implements CacheItemPoolInterface {
 	 */
 	public function getItems(array $keys = []): iterable {
 		array_walk($keys, fn ($key) => $this->valKey($key));
+
 		$cacheItems = [];
 		foreach ($keys as $key) {
 			$cacheItems[$key] = $this->getItem($key);
 		}
-
 		return $cacheItems;
 	}
 
@@ -97,12 +102,12 @@ class Psr6Decorator implements CacheItemPoolInterface {
 	 */
 	public function hasItem(string $key): bool {
 		$this->valKey($key);
+
 		if (!isset($this->deferredItems[$key])) {
 			return $this->cacheStore->get($key, []) !== null;
 		}
 
-		return ($this->deferredItems[$key]->getExpiresAt() === null
-				|| $this->deferredItems[$key]->getExpiresAt() > new \DateTimeImmutable());
+		return $this->checkIfNotExpired($this->deferredItems[$key]);
 	}
 
 	/**
@@ -152,10 +157,14 @@ class Psr6Decorator implements CacheItemPoolInterface {
 	public function save(CacheItemInterface $item): bool {
 		ArgUtils::assertTrue(assert($item instanceof Psr6CacheItem));
 
+		$key = $item->getKey();
+		unset($this->deferredItems[$key]);
+
 		$now = new \DateTime();
 		try {
-			$this->cacheStore->store($item->getKey(), [], $item->get(), $item->calcTtl(), $now);
-//			$item->setHit(true);
+			$this->cacheStore->store($key, [], $item->get(), $item->calcTtl(), $now);
+			// not sure if the hit status must remain or not
+			$item->setHit(true);
 			return true;
 		} catch (UnsupportedCacheStoreOperationException) {
 			return false;
@@ -166,6 +175,7 @@ class Psr6Decorator implements CacheItemPoolInterface {
 	 * @inheritDoc
 	 */
 	public function saveDeferred(CacheItemInterface $item): bool {
+		ArgUtils::assertTrue(assert($item instanceof Psr6CacheItem));
 		$this->deferredItems[$item->getKey()] = $item;
 		return true;
 	}
