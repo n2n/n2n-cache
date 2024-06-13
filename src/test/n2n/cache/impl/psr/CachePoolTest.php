@@ -635,8 +635,8 @@ class CachePoolTest extends TestCase {
 		$this->cache->save($item);
 
 		$item = $this->cache->getItem('key');
-		$this->assertTrue('5' === $item->get(), 'Wrong data type. If we store a string we must get an string back.');
 		$this->assertTrue(is_string($item->get()), 'Wrong data type. If we store a string we must get an string back.');
+		$this->assertTrue('5' === $item->get(), 'Wrong data type. If we store a string we must get an string back.');
 	}
 
 	public function testDataTypeInteger() {
@@ -649,8 +649,8 @@ class CachePoolTest extends TestCase {
 		$this->cache->save($item);
 
 		$item = $this->cache->getItem('key');
-		$this->assertTrue(5 === $item->get(), 'Wrong data type. If we store an int we must get an int back.');
 		$this->assertTrue(is_int($item->get()), 'Wrong data type. If we store an int we must get an int back.');
+		$this->assertTrue(5 === $item->get(), 'Wrong data type. If we store an int we must get an int back.');
 	}
 
 	public function testDataTypeNull() {
