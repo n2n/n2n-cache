@@ -22,22 +22,23 @@ class Psr6CacheItem implements CacheItemInterface {
 	 * @inheritDoc
 	 */
 	public function get(): mixed {
-		return $this->isHit() ? $this->data : null;
+		return /*$this->isHit() ?*/ $this->data /*: null*/;
 	}
 
 	/**
 	 * @inheritDoc
 	 */
 	public function isHit(): bool {
-		if (!$this->hit) {
-			return false;
-		}
-
-		if ($this->expiresAt === null) {
-			return true;
-		}
-
-		return $this->currentTime() < $this->expiresAt;
+		return $this->hit;
+//		if (!$this->hit) {
+//			return false;
+//		}
+//
+//		if ($this->expiresAt === null) {
+//			return true;
+//		}
+//
+//		return $this->currentTime() < $this->expiresAt;
 	}
 
 	public function setHit(bool $hit): void {

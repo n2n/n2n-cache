@@ -59,8 +59,8 @@ class Psr16Decorator implements CacheInterface {
 	 */
 	public function set(string $key, mixed $value, \DateInterval|int|null $ttl = null): bool {
 		$this->valKey($key);
+		$ttlDateInterval = PsrUtils::toDateIntervalOrNull($ttl);
 		try {
-			$ttlDateInterval = PsrUtils::toDateIntervalOrNull($ttl);
 			$this->cacheStore->store($key, [], $value, $ttlDateInterval, new \DateTimeImmutable('now'));
 			return true;
 		} catch (UnsupportedCacheStoreOperationException) {
