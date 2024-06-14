@@ -51,13 +51,8 @@ class Psr6Decorator implements CacheItemPoolInterface {
 	 * @throws Psr6InvalidArgumentException
 	 */
 	private function valKey(mixed $key): void {
-		$invalidCharacters = '{}()/\@:'; //psr-6 define this chars as invalid "{}()/\@:"
-
-		//psr-6 expect a string with at least one char
-		if (!is_string($key) || 1 === preg_match('#[' . preg_quote($invalidCharacters) . ']#', $key) || $key === ''
-				|| $key !== StringUtils::convertNonPrintables($key)) {
-			throw new Psr6InvalidArgumentException('The provided key is not valid: '
-					. StringUtils::strOf($key, true));
+		if (!PsrUtils::isValKey($key)) {
+			throw new Psr6InvalidArgumentException('The provided key is not valid: ' . StringUtils::strOf($key, true));
 		}
 	}
 

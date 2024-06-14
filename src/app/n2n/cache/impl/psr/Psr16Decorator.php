@@ -25,7 +25,6 @@ use n2n\cache\UnsupportedCacheStoreOperationException;
 use n2n\cache\CacheStore;
 use Psr\SimpleCache\CacheInterface;
 use n2n\cache\CacheStoreOperationFailedException;
-use n2n\util\ex\ExUtils;
 use n2n\util\StringUtils;
 
 /**
@@ -42,13 +41,8 @@ class Psr16Decorator implements CacheInterface {
 	 * @throws Psr16InvalidArgumentException
 	 */
 	private function valKey(mixed $key): void {
-		$invalidCharacters = '{}()/\@:'; //psr-16 define this chars as invalid "{}()/\@:"
-
-		//psr-16 expect a string with at least one char
-		if (!is_string($key) || 1 === preg_match('#[' . preg_quote($invalidCharacters) . ']#', $key) || $key === ''
-				|| $key !== StringUtils::convertNonPrintables($key)) {
-			throw new Psr16InvalidArgumentException('The provided key is not valid: '
-					. StringUtils::strOf($key, true));
+		if (!PsrUtils::isValKey($key)) {
+			throw new Psr16InvalidArgumentException('The provided key is not valid: ' . StringUtils::strOf($key, true));
 		}
 	}
 
@@ -66,13 +60,7 @@ class Psr16Decorator implements CacheInterface {
 	public function set(string $key, mixed $value, \DateInterval|int|null $ttl = null): bool {
 		$this->valKey($key);
 		try {
-			$ttlDateInterval = $ttl;
-			if (is_int($ttl)) {
-				/** @var $ttlDateInterval \DateInterval */
-				$ttlDateInterval = ExUtils::try(fn() => new \DateInterval('PT' . abs($ttl) . 'S'));
-				$ttlDateInterval->invert = $ttl < 0 ? 1 : 0; //invert can not be set by constructor
-			}
-
+			$ttlDateInterval = PsrUtils::toDateIntervalOrNull($ttl);
 			$this->cacheStore->store($key, [], $value, $ttlDateInterval, new \DateTimeImmutable('now'));
 			return true;
 		} catch (UnsupportedCacheStoreOperationException) {

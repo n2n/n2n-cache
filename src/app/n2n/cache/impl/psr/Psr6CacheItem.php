@@ -3,7 +3,6 @@
 namespace n2n\cache\impl\psr;
 
 use Psr\Cache\CacheItemInterface;
-use n2n\util\ex\ExUtils;
 
 class Psr6CacheItem implements CacheItemInterface {
 
@@ -74,11 +73,7 @@ class Psr6CacheItem implements CacheItemInterface {
 			$this->expiresAt = null;
 			return $this;
 		}
-		$ttlDateInterval = $ttl;
-		if (is_int($ttl)) {
-			$ttlDateInterval = ExUtils::try(fn() => new \DateInterval('PT' . abs($ttl) . 'S'));
-			$ttlDateInterval->invert = $ttl < 0 ? 1 : 0; //invert can not be set by constructor
-		}
+		$ttlDateInterval = PsrUtils::toDateIntervalOrNull($ttl);
 		$this->expiresAt = $this->currentTime()->add($ttlDateInterval);
 		return $this;
 	}
