@@ -9,14 +9,12 @@ use n2n\util\StringUtils;
 class PsrUtils {
 
 	static function toDateIntervalOrNull(DateInterval|int|null $ttl = null): DateInterval|null {
-		if ($ttl === null) {
-			return null;
+		if (!is_int($ttl)) {
+			return $ttl;
 		}
-		$ttlDateInterval = $ttl;
-		if (is_int($ttl)) {
-			$ttlDateInterval = ExUtils::try(fn() => new DateInterval('PT' . abs($ttl) . 'S'));
-			$ttlDateInterval->invert = $ttl < 0 ? 1 : 0; //invert can not be set by constructor
-		}
+
+		$ttlDateInterval = ExUtils::try(fn() => new DateInterval('PT' . abs($ttl) . 'S'));
+		$ttlDateInterval->invert = $ttl < 0 ? 1 : 0; //invert can not be set by constructor
 		return $ttlDateInterval;
 	}
 
