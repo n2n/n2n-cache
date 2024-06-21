@@ -670,7 +670,7 @@ class DboCacheEngineTest extends TestCase {
 	 * @throws DboException
 	 */
 	function testIgbinary(): void {
-		$this->markTestSkipped('CiBob does not support igbinary yet.');
+//		$this->markTestSkipped('CiBob does not support igbinary yet.');
 
 		$engine = $this->createEngine(igbinaryEnabled: true);
 		$time = time();

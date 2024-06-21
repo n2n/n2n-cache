@@ -31,25 +31,27 @@ class CachePoolTest extends TestCase {
 	 */
 	protected $skippedTests = [];
 
-	/**
-	 * @type CacheItemPoolInterface
-	 */
-	protected $cache;
+	protected ?CacheItemPoolInterface $cache = null;
 	private Pdo $pdo;
 	private DbTestPdoUtil $pdoUtil;
 
 	function setUp(): void {
 		$config = new PersistenceUnitConfig('holeradio', 'sqlite::memory:', '', '',
 				PersistenceUnitConfig::TIL_SERIALIZABLE, SqliteDialect::class);
-		$this->pdo = new Pdo('holeradio', new SqliteDialect($config));
+		$this->pdo = new Pdo('data', new SqliteDialect($config));
 		$this->pdoUtil = new DbTestPdoUtil($this->pdo);
 		$this->cache = $this->createCachePool();
+
+		//ToDo remove workaround for xdebug.mode=develop problem: https://bugs.xdebug.org/view.php?id=2222
+		// ($this->cache->clear(); line and comments) if this behaviour is solved
+		// because xdebug keep a reference of the last 8 throws, destruct are probably delayed
+		$this->cache->clear(); //this will create the DB-Tables, without xdebug.mode=develop can make problems
 	}
 
 	/**
 	 * @return CacheItemPoolInterface that is used in the tests
 	 */
-	public function createCachePool() {
+	public function createCachePool(): CacheItemPoolInterface {
 		$dboCacheStore = (new DboCacheStore($this->pdo))->setPdoCacheDataSize(DboCacheDataSize::STRING);
 		return PsrDecorators::psr6($dboCacheStore);
 	}
@@ -64,10 +66,8 @@ class CachePoolTest extends TestCase {
 	/**
 	 * @after
 	 */
-	public function tearDownService() {
-		if ($this->cache !== null) {
-			$this->cache->clear();
-		}
+	public function tearDown(): void {
+		$this->cache?->clear();
 	}
 
 	/**
@@ -401,7 +401,9 @@ class CachePoolTest extends TestCase {
 		$this->assertTrue($this->cache->getItem('key')->isHit(), 'Deferred items should be a hit even before they are committed');
 		$this->assertTrue($this->cache->getItem('key2')->isHit());
 
+		$this->assertCount(0, $this->pdoUtil->select('cached_data', null));
 		$this->cache->commit();
+		$this->assertCount(2, $this->pdoUtil->select('cached_data', null));
 
 		// They should be a hit after the commit as well
 		$this->assertTrue($this->cache->getItem('key')->isHit());
@@ -450,23 +452,24 @@ class CachePoolTest extends TestCase {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
 		}
-
+		$this->assertCount(0, $this->pdoUtil->select('cached_data', null));
 		$this->prepareDeferredSaveWithoutCommit();
 		gc_collect_cycles();
-
+		$this->assertCount(1, $this->pdoUtil->select('cached_data', null));
 		$cache = $this->createCachePool();
 		$this->assertTrue($cache->getItem('key')->isHit(), 'A deferred item should automatically be committed on CachePool::__destruct().');
 	}
 
-	private function prepareDeferredSaveWithoutCommit() {
+	private function prepareDeferredSaveWithoutCommit(): void {
 		$cache = $this->cache;
 		$this->cache = null;
-		$cache = $this->createCachePool();
 
 		$item = $cache->getItem('key');
 		$item->set('4711');
 		$cache->saveDeferred($item);
+
 // TODO: andreas
+//		gc_collect_cycles();
 //		debug_zval_dump($cache);
 	}
 
