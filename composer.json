@@ -29,6 +29,11 @@
 		"psr/simple-cache": "^3.0",
 		"psr/cache": "^3.0"
     },
+    "extra": {
+      "branch-alias": {
+        "dev-develop": "7.4.x-dev"
+      }
+    },
 	"autoload" : {
 		"psr-4" : {
 			"n2n\\cache\\" : "src/app/n2n/cache"
