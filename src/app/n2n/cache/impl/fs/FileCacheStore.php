@@ -44,7 +44,7 @@ class FileCacheStore implements CacheStore {
 	const CHARACTERISTIC_DELIMITER = '.';
 	const CHARACTERISTIC_HASH_LENGTH = 4;
 	const CACHE_FILE_SUFFIX = '.cache';
-	const LOCK_FILE_SUFFIX = '.fileclock';
+	const LOCK_FILE_SUFFIX = '.filelock';
 
 	private FsPath $dirPath;
 	private $dirPerm;
