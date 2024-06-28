@@ -31,8 +31,7 @@
     },
     "extra": {
       "branch-alias": {
-        "dev-develop": "7.4.x-dev",
-        "dev-master": "7.4.x-dev"
+        "dev-develop": "7.4.x-dev"
       }
     },
 	"autoload" : {
@@ -51,10 +50,5 @@
         "n2n/n2n-test": "^7.4",
         "ext-ctype": "*",
         "ext-mbstring": "*"
-	},
-    "extra": {
-        "branch-alias": {
-            "dev-develop": "7.4.x-dev"
-        }
-    }
+	}
 }
