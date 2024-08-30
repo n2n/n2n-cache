@@ -21,7 +21,7 @@ class DboCacheStoreTest extends TestCase {
 	}
 
 	function testWrite(): void {
-		$store = (new DboCacheStore($this->pdo))->setPdoCacheDataSize(DboCacheDataSize::STRING);
+		$store = (new DboCacheStore($this->pdo))->setDboCacheDataSize(DboCacheDataSize::STRING);
 
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
@@ -38,7 +38,7 @@ class DboCacheStoreTest extends TestCase {
 	}
 
 	function testRead(): void {
-		$store = (new DboCacheStore($this->pdo))->setPdoCacheDataSize(DboCacheDataSize::STRING);
+		$store = (new DboCacheStore($this->pdo))->setDboCacheDataSize(DboCacheDataSize::STRING);
 
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
@@ -54,7 +54,7 @@ class DboCacheStoreTest extends TestCase {
 	}
 
 	function testFindAll(): void {
-		$store = (new DboCacheStore($this->pdo))->setPdoCacheDataSize(DboCacheDataSize::STRING);
+		$store = (new DboCacheStore($this->pdo))->setDboCacheDataSize(DboCacheDataSize::STRING);
 
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
@@ -69,7 +69,7 @@ class DboCacheStoreTest extends TestCase {
 	}
 
 	function testRemove(): void {
-		$store = (new DboCacheStore($this->pdo))->setPdoCacheDataSize(DboCacheDataSize::STRING);
+		$store = (new DboCacheStore($this->pdo))->setDboCacheDataSize(DboCacheDataSize::STRING);
 
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
@@ -87,7 +87,7 @@ class DboCacheStoreTest extends TestCase {
 	}
 
 	function testRemoveAll(): void {
-		$store = (new DboCacheStore($this->pdo))->setPdoCacheDataSize(DboCacheDataSize::STRING);
+		$store = (new DboCacheStore($this->pdo))->setDboCacheDataSize(DboCacheDataSize::STRING);
 
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
@@ -105,7 +105,7 @@ class DboCacheStoreTest extends TestCase {
 	}
 
 	function testClear(): void {
-		$store = (new DboCacheStore($this->pdo))->setPdoCacheDataSize(DboCacheDataSize::STRING);
+		$store = (new DboCacheStore($this->pdo))->setDboCacheDataSize(DboCacheDataSize::STRING);
 
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
@@ -124,7 +124,7 @@ class DboCacheStoreTest extends TestCase {
 
 
 	function testGarbageCollectTableCreation(): void {
-		$store = (new DboCacheStore($this->pdo))->setPdoCacheDataSize(DboCacheDataSize::STRING);
+		$store = (new DboCacheStore($this->pdo))->setDboCacheDataSize(DboCacheDataSize::STRING);
 
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
 		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
@@ -136,7 +136,7 @@ class DboCacheStoreTest extends TestCase {
 	}
 
 	function testGarbageCollect() {
-		$store = (new DboCacheStore($this->pdo))->setPdoCacheDataSize(DboCacheDataSize::STRING);
+		$store = (new DboCacheStore($this->pdo))->setDboCacheDataSize(DboCacheDataSize::STRING);
 
 		$now = new \DateTimeImmutable();
 		$dateInterval = new \DateInterval('PT10S');

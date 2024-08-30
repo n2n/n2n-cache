@@ -135,7 +135,7 @@ class Psr16DecoratorTest extends TestCase {
 	 * @throws InvalidArgumentException
 	 */
 	function testExpiresWithHelpOfDboCacheStoreReadCheckIfRowIsExpired(): void {
-		$dboCacheStore = (new DboCacheStore($this->pdo))->setPdoCacheDataSize(DboCacheDataSize::STRING);
+		$dboCacheStore = (new DboCacheStore($this->pdo))->setDboCacheDataSize(DboCacheDataSize::STRING);
 		$store = PsrDecorators::psr16($dboCacheStore);
 		$ttl = new \DateInterval('PT300S');
 		$ttlNeg = new \DateInterval('PT12H');

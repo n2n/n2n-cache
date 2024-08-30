@@ -52,7 +52,7 @@ class CachePoolTest extends TestCase {
 	 * @return CacheItemPoolInterface that is used in the tests
 	 */
 	public function createCachePool(): CacheItemPoolInterface {
-		$dboCacheStore = (new DboCacheStore($this->pdo))->setPdoCacheDataSize(DboCacheDataSize::STRING);
+		$dboCacheStore = (new DboCacheStore($this->pdo))->setDboCacheDataSize(DboCacheDataSize::STRING);
 		return PsrDecorators::psr6($dboCacheStore);
 	}
 

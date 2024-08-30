@@ -48,7 +48,7 @@ class SimpleCacheTest extends TestCase {
 	 * @return CacheInterface that is used in the tests
 	 */
 	public function createSimpleCache() {
-		$dboCacheStore = (new DboCacheStore($this->pdo))->setPdoCacheDataSize(DboCacheDataSize::STRING);
+		$dboCacheStore = (new DboCacheStore($this->pdo))->setDboCacheDataSize(DboCacheDataSize::STRING);
 		return PsrDecorators::psr16($dboCacheStore);
 	}
 

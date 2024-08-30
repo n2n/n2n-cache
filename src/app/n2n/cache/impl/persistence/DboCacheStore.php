@@ -10,7 +10,7 @@ use n2n\spec\dbo\Dbo;
 class DboCacheStore implements CacheStore {
 	private string $dataTableName = 'cached_data';
 	private string $characteristicTableName = 'cached_characteristic';
-	private DboCacheDataSize $pdoCacheDataSize = DboCacheDataSize::TEXT;
+	private DboCacheDataSize $dboCacheDataSize = DboCacheDataSize::TEXT;
 	private bool $igbinaryEnabled = false;
 	private bool $tableAutoCreated = true;
 	private ?DboCacheEngine $pdoCacheEngine = null;
@@ -38,14 +38,14 @@ class DboCacheStore implements CacheStore {
 		return $this->characteristicTableName;
 	}
 
-	public function setPdoCacheDataSize(DboCacheDataSize $pdoCacheDataSize): DboCacheStore {
-		$this->pdoCacheDataSize = $pdoCacheDataSize;
+	public function setDboCacheDataSize(DboCacheDataSize $dboCacheDataSize): DboCacheStore {
+		$this->dboCacheDataSize = $dboCacheDataSize;
 		$this->pdoCacheEngine = null;
 		return $this;
 	}
 
-	public function getPdoCacheDataSize(): DboCacheDataSize {
-		return $this->pdoCacheDataSize;
+	public function getDboCacheDataSize(): DboCacheDataSize {
+		return $this->dboCacheDataSize;
 	}
 
 	public function isTableAutoCreated(): bool {
@@ -76,7 +76,7 @@ class DboCacheStore implements CacheStore {
 	private function tableCheckedCall(\Closure $closure): mixed {
 		if ($this->pdoCacheEngine === null) {
 			$this->pdoCacheEngine = new DboCacheEngine($this->dbo, $this->dataTableName, $this->characteristicTableName,
-					$this->pdoCacheDataSize, $this->igbinaryEnabled);
+					$this->dboCacheDataSize, $this->igbinaryEnabled);
 		}
 
 		try {
