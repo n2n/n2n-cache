@@ -10,7 +10,7 @@ use n2n\util\ex\ExUtils;
 
 class FileCacheStorePool implements CacheStorePool{
 
-	function __construct(private FsPath $dirFsPath, private ?string $dirPerm = null, private ?string $filePerm = null) {
+	function __construct(private FsPath $dirFsPath, private string|int|null $dirPerm = null, private string|int|null $filePerm = null) {
 
 	}
 
