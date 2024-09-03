@@ -10,6 +10,7 @@ use n2n\util\type\TypeUtils;
 use n2n\cache\CacheStorePool;
 use WeakReference;
 use ArrayObject;
+use n2n\util\HashUtils;
 
 class DboCacheStorePool implements CacheStorePool {
 
@@ -63,7 +64,7 @@ class DboCacheStorePool implements CacheStorePool {
 
 
 	function lookupCacheStore(string $namespace): CacheStore {
-		$tableName = mb_strtolower(TypeUtils::encodeNamespace($namespace, self::SEPARATOR));
+		$tableName = HashUtils::base36Md5Hash($namespace);
 
 		if (isset($this->weakCacheStores[$tableName])
 				&& null !== ($cacheStore = $this->weakCacheStores[$tableName]?->get())) {

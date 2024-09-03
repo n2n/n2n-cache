@@ -9,6 +9,7 @@ use n2n\core\config\PersistenceUnitConfig;
 use n2n\test\DbTestPdoUtil;
 use n2n\persistence\orm\attribute\DateTime;
 use n2n\cache\impl\CacheStorePools;
+use n2n\util\HashUtils;
 
 class DboCacheStorePoolTest extends TestCase {
 	private Pdo $pdo;
@@ -31,16 +32,18 @@ class DboCacheStorePoolTest extends TestCase {
 
 		$pool->lookupCacheStore('ns\\ns2')->store('name', ['c1' => 'v1', 'c2' => 'v2'], 'huii');
 
-		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('holeradio_ns_ns1_data'));
-		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('holeradio_ns_ns1_characteristic'));
+		$ns1TableName = HashUtils::base36Md5Hash('ns\\ns1');
+		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('holeradio_' . $ns1TableName . '_data'));
+		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('holeradio_' . $ns1TableName. '_characteristic'));
 
-		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('holeradio_ns_ns2_data'));
-		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('holeradio_ns_ns2_characteristic'));
+		$ns2TableName = HashUtils::base36Md5Hash('ns\\ns2');
+		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('holeradio_' . $ns2TableName . '_data'));
+		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('holeradio_' . $ns2TableName . '_characteristic'));
 
-		$this->assertCount(1, $this->pdoUtil->select('holeradio_ns_ns1_data', null));
-		$this->assertCount(2, $this->pdoUtil->select('holeradio_ns_ns1_characteristic', null));
-		$this->assertCount(1, $this->pdoUtil->select('holeradio_ns_ns2_data', null));
-		$this->assertCount(2, $this->pdoUtil->select('holeradio_ns_ns2_characteristic', null));
+		$this->assertCount(1, $this->pdoUtil->select('holeradio_' . $ns1TableName . '_data', null));
+		$this->assertCount(2, $this->pdoUtil->select('holeradio_' . $ns1TableName . '_characteristic', null));
+		$this->assertCount(1, $this->pdoUtil->select('holeradio_' . $ns2TableName . '_data', null));
+		$this->assertCount(2, $this->pdoUtil->select('holeradio_' . $ns2TableName . '_characteristic', null));
 	}
 
 	function testClear(): void {
