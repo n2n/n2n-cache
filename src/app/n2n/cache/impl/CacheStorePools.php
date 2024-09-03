@@ -7,6 +7,7 @@ use n2n\cache\impl\persistence\DboCacheStorePool;
 use n2n\util\io\fs\FsPath;
 use n2n\cache\impl\fs\FileCacheStorePool;
 use n2n\cache\impl\ephemeral\EphemeralCacheStorePool;
+use n2n\cache\impl\ephemeral\NullCacheStorePool;
 
 class CacheStorePools {
 
@@ -24,5 +25,8 @@ class CacheStorePools {
 		return new EphemeralCacheStorePool();
 	}
 
+	static function null(): NullCacheStorePool {
+		return new NullCacheStorePool();
+	}
 
 }
