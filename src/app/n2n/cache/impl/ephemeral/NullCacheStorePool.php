@@ -12,6 +12,5 @@ class NullCacheStorePool implements CacheStorePool{
 	}
 
 	function clear(): void {
-		$this->cacheStores = [];
 	}
 }
