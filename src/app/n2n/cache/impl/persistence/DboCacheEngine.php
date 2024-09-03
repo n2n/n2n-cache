@@ -551,7 +551,7 @@ class DboCacheEngine {
 						->setNullAllowed(false);
 				break;
 			case DboCacheDataSize::TEXT:
-				$columnFactory->createTextColumn(self::DATA_COLUMN, self::MAX_TEXT_SIZE)
+				$columnFactory->createBlobColumn(self::DATA_COLUMN, self::MAX_TEXT_SIZE)
 						->setNullAllowed(false);
 				break;
 		}
