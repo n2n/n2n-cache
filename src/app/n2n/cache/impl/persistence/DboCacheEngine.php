@@ -277,12 +277,20 @@ class DboCacheEngine {
 	private function execInTransaction(\Closure $closure, bool $readOnly): void {
 		$this->ensureNotInTransaction();
 		$this->dbo->beginTransaction($readOnly);
-		try {
-			$closure();
-			$this->dbo->commit();
-		} finally {
-			if ($this->dbo->inTransaction()) {
-				$this->dbo->rollBack();
+
+		for ($try = 0; ; $try++) {
+			try {
+				$closure();
+				$this->dbo->commit();
+				return;
+			} catch (DboException $e) {
+				if ($try >= 2 || !$e->isDeadlock()) {
+					throw $e;
+				}
+			} finally {
+				if ($this->dbo->inTransaction()) {
+					$this->dbo->rollBack();
+				}
 			}
 		}
 	}
