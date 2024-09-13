@@ -254,7 +254,6 @@ class DboCacheEngine {
 			return igbinary_serialize($characteristics);
 		}
 
-
 		return serialize($characteristics);
 	}
 
