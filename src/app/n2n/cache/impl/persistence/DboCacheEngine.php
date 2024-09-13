@@ -361,6 +361,7 @@ class DboCacheEngine {
 	/**
 	 * @param string|null $nameNeedle
 	 * @param array|null $characteristicNeedles
+	 * @param int $expiredByTime
 	 * @return array
 	 * @throws DboException
 	 */
