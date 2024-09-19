@@ -275,9 +275,12 @@ class DboCacheEngine {
 	 */
 	private function execInTransaction(\Closure $closure, bool $readOnly): void {
 		$this->ensureNotInTransaction();
-		$this->dbo->beginTransaction($readOnly);
 
 		for ($try = 0; ; $try++) {
+			if (!$this->dbo->inTransaction()) {
+				$this->dbo->beginTransaction($readOnly);
+			}
+
 			try {
 				$closure();
 				$this->dbo->commit();
