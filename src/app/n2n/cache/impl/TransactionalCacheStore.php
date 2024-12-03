@@ -38,7 +38,7 @@
 // 	 * {@inheritDoc}
 // 	 * @see \n2n\cache\CacheStore::store()
 // 	 */
-// 	public function store(string $name, array $characteristics, $data, \DateTime $lastMod = null) {
+// 	public function store(string $name, array $characteristics, $data, ?\DateTime $lastMod = null) {
 // 		return $this->cacheStore->get($name, $characteristics);
 // 	}
 
@@ -61,7 +61,7 @@
 // 	 * {@inheritDoc}
 // 	 * @see \n2n\cache\CacheStore::findAll()
 // 	 */
-// 	public function findAll(string $name, array $characteristicNeedles = null) {
+// 	public function findAll(string $name, ?array $characteristicNeedles = null) {
 // 		return $this->cacheStore->findAll($name, $characteristicNeedles);
 // 	}
 
@@ -69,7 +69,7 @@
 // 	 * {@inheritDoc}
 // 	 * @see \n2n\cache\CacheStore::removeAll()
 // 	 */
-// 	public function removeAll(string $name, array $characteristicNeedles = null) {
+// 	public function removeAll(string $name, ?array $characteristicNeedles = null) {
 // 		// TODO Auto-generated method stub
 		
 // 	}

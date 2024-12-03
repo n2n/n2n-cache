@@ -12,8 +12,8 @@ class EphemeralCacheStore implements CacheStore {
 	 */
     private $cacheItems = [];
 
-    public function store(string $name, array $characteristics, mixed $data, \DateInterval $ttl = null,
-			\DateTimeInterface $now = null): void {
+    public function store(string $name, array $characteristics, mixed $data, ?\DateInterval $ttl = null,
+			?\DateTimeInterface $now = null): void {
 		$this->remove($name, $characteristics);
 		$this->nsStore($name)[] = new CacheItem($name, $characteristics, $data);
     }
@@ -26,7 +26,7 @@ class EphemeralCacheStore implements CacheStore {
 	 * @param \DateTimeInterface|null $now
 	 * @return CacheItem|null
 	 */
-    public function get(string $name, array $characteristics, \DateTimeInterface $now = null): ?CacheItem {
+    public function get(string $name, array $characteristics, ?\DateTimeInterface $now = null): ?CacheItem {
 		foreach ($this->nsStore($name) as $cacheItem) {
 			if ($cacheItem->matchesCharacteristics($characteristics)) {
 				return $cacheItem;
@@ -57,7 +57,7 @@ class EphemeralCacheStore implements CacheStore {
 	 * @param \DateTimeInterface|null $now
 	 * @return CacheItem[]
 	 */
-    public function findAll(string $name, array $characteristicNeedles = null, \DateTimeInterface $now = null): array {
+    public function findAll(string $name, ?array $characteristicNeedles = null, ?\DateTimeInterface $now = null): array {
         $found = [];
 		$cacheItems = $this->nsStore($name);
 
@@ -76,7 +76,7 @@ class EphemeralCacheStore implements CacheStore {
 		return $found;
     }
 
-    public function removeAll(?string $name, array $characteristicNeedles = null): void {
+    public function removeAll(?string $name, ?array $characteristicNeedles = null): void {
 		if ($name === null && $characteristicNeedles === null) {
 			$this->clear();
 			return;
@@ -116,7 +116,7 @@ class EphemeralCacheStore implements CacheStore {
 		return $this->cacheItems[$namespace];
 	}
 
-	public function garbageCollect(\DateInterval $maxLifetime = null, \DateTimeInterface $now = null): void {
+	public function garbageCollect(?\DateInterval $maxLifetime = null, ?\DateTimeInterface $now = null): void {
 
 	}
 }

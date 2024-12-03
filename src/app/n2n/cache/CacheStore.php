@@ -35,8 +35,8 @@ interface CacheStore {
 	 * @param \DateTimeInterface|null $now
 	 * @param \DateInterval|null $ttl
 	 */
-	public function store(string $name, array $characteristics, mixed $data, \DateInterval $ttl = null,
-			\DateTimeInterface $now = null): void;
+	public function store(string $name, array $characteristics, mixed $data, ?\DateInterval $ttl = null,
+			?\DateTimeInterface $now = null): void;
 
 	/**
 	 * Returns the CacheItem which has been stored with exactly these params (name and characteristics).
@@ -47,7 +47,7 @@ interface CacheStore {
 	 * @return CacheItem|null null if item does not exist
 	 * @throws CorruptedCacheStoreException
 	 */
-	public function get(string $name, array $characteristics, \DateTimeInterface $now = null): ?CacheItem;
+	public function get(string $name, array $characteristics, ?\DateTimeInterface $now = null): ?CacheItem;
 
 	/**
 	 * Remove the data which has been stored with exactly these params (name and characteristics).
@@ -68,7 +68,7 @@ interface CacheStore {
 	 * @param \DateTimeInterface|null $now
 	 * @return CacheItem[]
 	 */
-	public function findAll(string $name, array $characteristicNeedles = null, \DateTimeInterface $now = null): array;
+	public function findAll(string $name, ?array $characteristicNeedles = null, ?\DateTimeInterface $now = null): array;
 
 	/**
 	 * Returns the CacheItems which has been stored with exactly this name (if provided) and contains all the passed
@@ -76,7 +76,7 @@ interface CacheStore {
 	 * @param string|null $name
 	 * @param string[] $characteristicNeedles
 	 */
-	public function removeAll(?string $name, array $characteristicNeedles = null): void;
+	public function removeAll(?string $name, ?array $characteristicNeedles = null): void;
 
 	/**
 	 * Remove all CacheItems that are considered old by the ttl parameter provided when stored (see {@link self::store()})
@@ -92,7 +92,7 @@ interface CacheStore {
 	 * @param \DateTimeInterface|null $now
 	 * @return void
 	 */
-	public function garbageCollect(\DateInterval $maxLifetime = null, \DateTimeInterface $now = null): void;
+	public function garbageCollect(?\DateInterval $maxLifetime = null, ?\DateTimeInterface $now = null): void;
 
 	/**
 	 * Removes all stored CacheItems.

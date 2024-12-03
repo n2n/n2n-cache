@@ -151,8 +151,8 @@ class FileCacheStore implements CacheStore {
 	/* (non-PHPdoc)
 	 * @see \n2n\cache\CacheStore::store()
 	 */
-	public function store(string $name, array $characteristics, mixed $data, \DateInterval $ttl = null,
-			\DateTimeInterface $now = null): void {
+	public function store(string $name, array $characteristics, mixed $data, ?\DateInterval $ttl = null,
+			?\DateTimeInterface $now = null): void {
 		$nameDirPath = $this->buildNameDirPath($name);
 		if (!$nameDirPath->isDir()) {
 			$parentDirPath = $nameDirPath->getParent();
@@ -239,7 +239,7 @@ class FileCacheStore implements CacheStore {
 	/* (non-PHPdoc)
 	 * @see \n2n\cache\CacheStore::get()
 	 */
-	public function get(string $name, array $characteristics, \DateTimeInterface $now = null): ?CacheItem {
+	public function get(string $name, array $characteristics, ?\DateTimeInterface $now = null): ?CacheItem {
 		$nameDirPath = $this->buildNameDirPath($name);
 		if (!$nameDirPath->exists()) return null;
 		return $this->read($name, $nameDirPath->ext($this->buildFileName($characteristics)));
@@ -303,7 +303,7 @@ class FileCacheStore implements CacheStore {
 	 * @param array|null $characteristicNeedles
 	 * @return FsPath[]
 	 */
-	private function findFilePaths(?string $name, array $characteristicNeedles = null): array {
+	private function findFilePaths(?string $name, ?array $characteristicNeedles = null): array {
 		$fileGlobPattern = $this->buildFileGlobPattern((array) $characteristicNeedles);
 
 		if ($name === null) {
@@ -319,7 +319,7 @@ class FileCacheStore implements CacheStore {
 
 	}
 
-	public function findAll(string $name, array $characteristicNeedles = null, \DateTimeInterface $now = null): array {
+	public function findAll(string $name, ?array $characteristicNeedles = null, ?\DateTimeInterface $now = null): array {
 		$cacheItems = array();
 
 		foreach ($this->findFilePaths($name, $characteristicNeedles) as $filePath) {
@@ -338,7 +338,7 @@ class FileCacheStore implements CacheStore {
 	/* (non-PHPdoc)
 	 * @see \n2n\cache\CacheStore::removeAll()
 	 */
-	public function removeAll(?string $name, array $characteristicNeedles = null): void {
+	public function removeAll(?string $name, ?array $characteristicNeedles = null): void {
 		foreach ($this->findFilePaths($name, $characteristicNeedles) as $filePath) {
 			$this->unlink($filePath);
 		}
@@ -352,7 +352,7 @@ class FileCacheStore implements CacheStore {
 		}
 	}
 
-	public function garbageCollect(\DateInterval $maxLifetime = null, \DateTimeInterface $now = null): void {
+	public function garbageCollect(?\DateInterval $maxLifetime = null, ?\DateTimeInterface $now = null): void {
 		throw new UnsupportedOperationException('FileCacheStore does not support garbage collection.');
 	}
 }

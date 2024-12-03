@@ -106,8 +106,8 @@ class DboCacheStore implements CacheStore {
 		return $tablesCreated;
 	}
 
-	public function store(string $name, array $characteristics, mixed $data, \DateInterval $ttl = null,
-			\DateTimeInterface $now = null): void {
+	public function store(string $name, array $characteristics, mixed $data, ?\DateInterval $ttl = null,
+			?\DateTimeInterface $now = null): void {
 		$now ??= new \DateTime();
 		$createdAt = $now->getTimestamp();
 		$expiresAt = null;
@@ -121,7 +121,7 @@ class DboCacheStore implements CacheStore {
 			});
 	}
 
-	public function get(string $name, array $characteristics, \DateTimeInterface $now = null): ?CacheItem {
+	public function get(string $name, array $characteristics, ?\DateTimeInterface $now = null): ?CacheItem {
 		$expiredByTime = ($now ?? new \DateTime())->getTimestamp();
 
 		$result = $this->tableCheckedCall(/** @throws DboException */ function () use (&$name, &$characteristics, &$expiredByTime) {
@@ -146,7 +146,7 @@ class DboCacheStore implements CacheStore {
 		});
 	}
 
-	public function findAll(string $name, array $characteristicNeedles = null, \DateTimeInterface $now = null): array {
+	public function findAll(string $name, ?array $characteristicNeedles = null, ?\DateTimeInterface $now = null): array {
 		$expiredByTime = ($now ?? new \DateTime())->getTimestamp();
 
 		$results = $this->tableCheckedCall(/** @throws DboException */ function () use (&$name, &$characteristics,
@@ -157,7 +157,7 @@ class DboCacheStore implements CacheStore {
 		return array_map(fn ($result) => self::parseCacheItem($result), $results);
 	}
 
-	public function removeAll(?string $name, array $characteristicNeedles = null): void {
+	public function removeAll(?string $name, ?array $characteristicNeedles = null): void {
 		$this->tableCheckedCall(/** @throws DboException */ function () use (&$name, &$characteristics) {
 			$this->pdoCacheEngine->deleteBy($name, $characteristics);
 		});
@@ -169,7 +169,7 @@ class DboCacheStore implements CacheStore {
 		});
 	}
 
-	public function garbageCollect(\DateInterval $maxLifetime = null, \DateTimeInterface $now = null): void {
+	public function garbageCollect(?\DateInterval $maxLifetime = null, ?\DateTimeInterface $now = null): void {
 		$now ??= new \DateTime();
 		$this->tableCheckedCall(/** @throws DboException */ function() use (&$now) {
 			$this->pdoCacheEngine->deleteExpiredByTime($now->getTimestamp());
