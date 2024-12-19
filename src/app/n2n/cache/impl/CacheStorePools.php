@@ -17,7 +17,7 @@ class CacheStorePools {
 		return $pool;
 	}
 
-	static function file(FsPath $dirPath, string|int $dirPerm = null, string|int $filePerm = null): FileCacheStorePool {
+	static function file(FsPath $dirPath, string|int $dirPerm = null, string|int|null $filePerm = null): FileCacheStorePool {
 		return new FileCacheStorePool($dirPath, $dirPerm, $filePerm);
 	}
 
