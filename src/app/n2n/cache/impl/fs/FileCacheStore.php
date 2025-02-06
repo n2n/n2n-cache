@@ -182,7 +182,8 @@ class FileCacheStore implements CacheStore {
 		}
 
 		if ($this->filePerm !== null) {
-			$filePath->chmod($this->filePerm);
+			// file cloud be removed by {@link self::clear()} in the meantime despite the active lock.
+			$filePath->chmod($this->filePerm, true);
 		}
 		$lock->release();
 	}
