@@ -350,7 +350,7 @@ class DboCacheEngine {
 				$this->deleteFromDataTable($name, $characteristicsStr, null, null);
 				$this->deleteFromCharacteristicTable($name, $characteristicsStr, null, null);
 			}
-		}, true);
+		}, false);
 	}
 
 	/**
