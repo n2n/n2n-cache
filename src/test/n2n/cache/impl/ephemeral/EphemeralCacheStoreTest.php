@@ -2,6 +2,7 @@
 namespace n2n\cache\impl\ephemeral;
 
 use PHPUnit\Framework\TestCase;
+use n2n\cache\CharacteristicsList;
 
 class EphemeralCacheStoreTest extends TestCase {
 	private EphemeralCacheStore $ephemeralCacheStore;
@@ -12,7 +13,7 @@ class EphemeralCacheStoreTest extends TestCase {
 
 	function testStore() {
 		$name = 'item';
-		$characteristics = ['characteristic1' => '1', 'characteristic2' => 'two'];
+		$characteristics = CharacteristicsList::fromArg(['characteristic1' => '1', 'characteristic2' => 'two']);
 		$data = 'data';
 
 		$this->ephemeralCacheStore->store($name, $characteristics, $data);
@@ -28,7 +29,7 @@ class EphemeralCacheStoreTest extends TestCase {
 
 	function testGet() {
 		$name = 'item';
-		$characteristics = ['char1' => '1', 'characteristic2' => 'two'];
+		$characteristics = CharacteristicsList::fromArg(['char1' => '1', 'characteristic2' => 'two']);
 		$data = 'data';
 
 		$this->ephemeralCacheStore->store($name, $characteristics, $data);
@@ -38,14 +39,16 @@ class EphemeralCacheStoreTest extends TestCase {
 		$this->assertEquals($characteristics, $cacheItem->getCharacteristics());
 		$this->assertEquals($data, $cacheItem->getData());
 
+		$characteristics = $characteristics->toArray();
 		$characteristics['weather'] = 'cloudy';
+		$characteristics = CharacteristicsList::fromArg($characteristics);
 		$cacheItem = $this->ephemeralCacheStore->get($name, $characteristics);
 		$this->assertEquals(null, $cacheItem);
     }
 
 	function testRemove() {
 		$name = 'item';
-		$characteristics = ['char1' => '1', 'characteristic2' => 'two'];
+		$characteristics = CharacteristicsList::fromArg(['char1' => '1', 'characteristic2' => 'two']);
 		$data = 'data';
 
 		$this->ephemeralCacheStore->store($name, $characteristics, $data);
@@ -56,22 +59,22 @@ class EphemeralCacheStoreTest extends TestCase {
 	}
 
 	function testFindAll() {
-		$this->ephemeralCacheStore->store('test', ['characteristic1' => '1', 'characteristic2' => 'two', 'characteristic3' => 'asdf'], true);
-		$this->ephemeralCacheStore->store('test', ['characteristic1' => '2', 'characteristic2' => 'two', 'characteristic3' => 'asdf'], true);
-		$this->ephemeralCacheStore->store('test', ['characteristic1' => '3', 'characteristic2' => 'three', 'characteristic3' => 'yxcv'], true);
+		$this->ephemeralCacheStore->store('test', CharacteristicsList::fromArg(['characteristic1' => '1', 'characteristic2' => 'two', 'characteristic3' => 'asdf']), true);
+		$this->ephemeralCacheStore->store('test', CharacteristicsList::fromArg(['characteristic1' => '2', 'characteristic2' => 'two', 'characteristic3' => 'asdf']), true);
+		$this->ephemeralCacheStore->store('test', CharacteristicsList::fromArg(['characteristic1' => '3', 'characteristic2' => 'three', 'characteristic3' => 'yxcv']), true);
 
 		$this->assertCount(3, $this->ephemeralCacheStore->findAll('test'));
-		$this->assertCount(2, $this->ephemeralCacheStore->findAll('test', ['characteristic2' => 'two']));
-		$this->assertCount(2, $this->ephemeralCacheStore->findAll('test', ['characteristic2' => 'two', 'characteristic3' => 'asdf']));
-		$this->assertCount(1, $this->ephemeralCacheStore->findAll('test', ['characteristic1' => '2', 'characteristic2' => 'two', 'characteristic3' => 'asdf']));
-		$this->assertCount(0, $this->ephemeralCacheStore->findAll('asdf', []));
-		$this->assertCount(0, $this->ephemeralCacheStore->findAll('test', ['new' => 'unknown']));
+		$this->assertCount(2, $this->ephemeralCacheStore->findAll('test', CharacteristicsList::fromArg(['characteristic2' => 'two'])));
+		$this->assertCount(2, $this->ephemeralCacheStore->findAll('test', CharacteristicsList::fromArg(['characteristic2' => 'two', 'characteristic3' => 'asdf'])));
+		$this->assertCount(1, $this->ephemeralCacheStore->findAll('test', CharacteristicsList::fromArg(['characteristic1' => '2', 'characteristic2' => 'two', 'characteristic3' => 'asdf'])));
+		$this->assertCount(0, $this->ephemeralCacheStore->findAll('asdf', CharacteristicsList::fromArg([])));
+		$this->assertCount(0, $this->ephemeralCacheStore->findAll('test', CharacteristicsList::fromArg(['new' => 'unknown'])));
 	}
 
 	function testRemoveAll() {
-		$this->ephemeralCacheStore->store('test', ['characteristic1' => '1', 'characteristic2' => 'two', 'characteristic3' => 'asdf'], true);
-		$this->ephemeralCacheStore->store('test', ['characteristic1' => '2', 'characteristic2' => 'two', 'characteristic3' => 'asdf'], true);
-		$this->ephemeralCacheStore->store('asdf', ['characteristic1' => '3', 'characteristic2' => 'three', 'characteristic3' => 'yxcv'], true);
+		$this->ephemeralCacheStore->store('test', CharacteristicsList::fromArg(['characteristic1' => '1', 'characteristic2' => 'two', 'characteristic3' => 'asdf']), true);
+		$this->ephemeralCacheStore->store('test', CharacteristicsList::fromArg(['characteristic1' => '2', 'characteristic2' => 'two', 'characteristic3' => 'asdf']), true);
+		$this->ephemeralCacheStore->store('asdf', CharacteristicsList::fromArg(['characteristic1' => '3', 'characteristic2' => 'three', 'characteristic3' => 'yxcv']), true);
 
 		$this->ephemeralCacheStore->removeAll('test');
 
@@ -80,9 +83,9 @@ class EphemeralCacheStoreTest extends TestCase {
 	}
 
 	function testClear() {
-		$this->ephemeralCacheStore->store('test', ['characteristic1' => '1', 'characteristic2' => 'two', 'characteristic3' => 'asdf'], true);
-		$this->ephemeralCacheStore->store('test', ['characteristic1' => '2', 'characteristic2' => 'two', 'characteristic3' => 'asdf'], true);
-		$this->ephemeralCacheStore->store('asdf', ['characteristic1' => '3', 'characteristic2' => 'three', 'characteristic3' => 'yxcv'], true);
+		$this->ephemeralCacheStore->store('test', CharacteristicsList::fromArg(['characteristic1' => '1', 'characteristic2' => 'two', 'characteristic3' => 'asdf']), true);
+		$this->ephemeralCacheStore->store('test', CharacteristicsList::fromArg(['characteristic1' => '2', 'characteristic2' => 'two', 'characteristic3' => 'asdf']), true);
+		$this->ephemeralCacheStore->store('asdf', CharacteristicsList::fromArg(['characteristic1' => '3', 'characteristic2' => 'three', 'characteristic3' => 'yxcv']), true);
 
 		$this->ephemeralCacheStore->clear();
 
@@ -91,11 +94,11 @@ class EphemeralCacheStoreTest extends TestCase {
 	}
 
 	function testRemoveAllNullName() {
-		$this->ephemeralCacheStore->store('test', ['characteristic1' => '1', 'characteristic2' => 'two', 'characteristic3' => 'asdf'], true);
-		$this->ephemeralCacheStore->store('test2', ['characteristic1' => '2', 'characteristic2' => 'two', 'characteristic3' => 'asdf'], true);
-		$this->ephemeralCacheStore->store('asdf', ['characteristic1' => '3', 'characteristic2' => 'three', 'characteristic3' => 'yxcv'], true);
+		$this->ephemeralCacheStore->store('test', CharacteristicsList::fromArg(['characteristic1' => '1', 'characteristic2' => 'two', 'characteristic3' => 'asdf']), true);
+		$this->ephemeralCacheStore->store('test2', CharacteristicsList::fromArg(['characteristic1' => '2', 'characteristic2' => 'two', 'characteristic3' => 'asdf']), true);
+		$this->ephemeralCacheStore->store('asdf', CharacteristicsList::fromArg(['characteristic1' => '3', 'characteristic2' => 'three', 'characteristic3' => 'yxcv']), true);
 
-		$this->ephemeralCacheStore->removeAll(null, ['characteristic1' => '3']);
+		$this->ephemeralCacheStore->removeAll(null, CharacteristicsList::fromArg(['characteristic1' => '3']));
 
 		$this->assertNotEmpty($this->ephemeralCacheStore->findAll('test'));
 		$this->assertNotEmpty($this->ephemeralCacheStore->findAll('test2'));
@@ -103,19 +106,19 @@ class EphemeralCacheStoreTest extends TestCase {
 	}
 
 	function testEmptyCharacteristics() {
-		$this->ephemeralCacheStore->store('test', [], 'data');
+		$this->ephemeralCacheStore->store('test', CharacteristicsList::fromArg([]), 'data');
 
-		$this->assertNotNull($this->ephemeralCacheStore->get('test', []));
+		$this->assertNotNull($this->ephemeralCacheStore->get('test', CharacteristicsList::fromArg([])));
 	}
 
 	function testMultipleItemsSameNamespace() {
-		$this->ephemeralCacheStore->store('test', ['char1' => '1', 'char2' => 'two'], 'data1');
-		$this->ephemeralCacheStore->store('test', ['char1' => '1', 'char3' => 'three'], 'data2');
+		$this->ephemeralCacheStore->store('test', CharacteristicsList::fromArg(['char1' => '1', 'char2' => 'two']), 'data1');
+		$this->ephemeralCacheStore->store('test', CharacteristicsList::fromArg(['char1' => '1', 'char3' => 'three']), 'data2');
 
-		$found = $this->ephemeralCacheStore->findAll('test', ['char1' => '1']);
+		$found = $this->ephemeralCacheStore->findAll('test', CharacteristicsList::fromArg(['char1' => '1']));
 		$this->assertCount(2, $found);
 
-		$found = $this->ephemeralCacheStore->findAll('test', ['char2' => 'two']);
+		$found = $this->ephemeralCacheStore->findAll('test', CharacteristicsList::fromArg(['char2' => 'two']));
 		$this->assertCount(1, $found);
 		$this->assertEquals('data1', $found[0]->getData());
 	}

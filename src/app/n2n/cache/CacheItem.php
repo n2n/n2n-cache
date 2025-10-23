@@ -24,15 +24,15 @@ namespace n2n\cache;
 
 class CacheItem {
 	private string $name;
-	private array $characteristics;
+	private CharacteristicsList $characteristics;
 	public mixed $data;
 
 	/**
 	 * @param string $name
-	 * @param string[] $characteristics
+	 * @param CharacteristicsList $characteristics
 	 * @param mixed $data
 	 */
-	public function __construct(string $name, array $characteristics, mixed $data) {
+	public function __construct(string $name, CharacteristicsList $characteristics, mixed $data) {
 		$this->name = $name;
 		$this->setCharacteristics($characteristics);
 		$this->data = $data;
@@ -53,36 +53,32 @@ class CacheItem {
 	}
 
 	/**
-	 * @return array
+	 * @return CharacteristicsList
 	 */
-	public function getCharacteristics(): array {
+	public function getCharacteristics(): CharacteristicsList {
 		return $this->characteristics;
 	}
 
-	/**
-	 * @param array $characteristics
-	 */
-	public function setCharacteristics(array $characteristics): void {
-//		ArgUtils::valArray($characteristics, 'string');
+	public function setCharacteristics(CharacteristicsList $characteristics): void {
 		$this->characteristics = $characteristics;
 	}
 
 	/**
-	 * @param array $characteristics
+	 * @param CharacteristicsList $characteristics
 	 * @return bool
 	 */
-	function matchesCharacteristics(array $characteristics): bool {
-		return $this->characteristics === $characteristics;
+	function matchesCharacteristics(CharacteristicsList $characteristics): bool {
+		return $this->characteristics->equals($characteristics);
 	}
 
 	/**
-	 * @param array $characteristicNeedles
+	 * @param CharacteristicsList $characteristicNeedles
 	 * @return bool
 	 */
-	function containsCharacteristics(array $characteristicNeedles): bool {
-		foreach ($characteristicNeedles as $key => $value) {
-			if (!array_key_exists($key, $this->characteristics)
-					|| $value !== $this->characteristics[$key]) {
+	function containsCharacteristics(CharacteristicsList $characteristicNeedles): bool {
+		foreach ($characteristicNeedles->toArray() as $key => $value) {
+			if (!array_key_exists($key, $this->characteristics->toArray())
+					|| $value !== $this->characteristics->toArray()[$key]) {
 				return false;
 			}
 		}

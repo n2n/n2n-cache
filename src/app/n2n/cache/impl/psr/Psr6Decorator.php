@@ -28,6 +28,7 @@ use n2n\cache\CacheStore;
 use n2n\cache\UnsupportedCacheStoreOperationException;
 use n2n\util\type\ArgUtils;
 use n2n\util\StringUtils;
+use n2n\cache\CharacteristicsList;
 
 /**
  * If any operation failed due to CacheStore related errors, a CacheStoreOperationFailedException should be thrown.
@@ -72,7 +73,7 @@ class Psr6Decorator implements CacheItemPoolInterface {
 			return new Psr6CacheItem($key,$hit ? $this->deferredItems[$key]->get() : null, $hit);
 		}
 
-		$cacheItem = $this->cacheStore->get($key, []);
+		$cacheItem = $this->cacheStore->get($key, CharacteristicsList::fromArg([]));
 		if ($cacheItem === null) {
 			return new Psr6CacheItem($key, null, false);
 		}
@@ -99,7 +100,7 @@ class Psr6Decorator implements CacheItemPoolInterface {
 		$this->valKey($key);
 
 		if (!isset($this->deferredItems[$key])) {
-			return $this->cacheStore->get($key, []) !== null;
+			return $this->cacheStore->get($key, CharacteristicsList::fromArg([])) !== null;
 		}
 
 		return $this->checkIfNotExpired($this->deferredItems[$key]);
@@ -137,7 +138,7 @@ class Psr6Decorator implements CacheItemPoolInterface {
 		try {
 			foreach ($keys as $key) {
 				$this->valKey($key);
-				$this->cacheStore->remove($key, []);
+				$this->cacheStore->remove($key, CharacteristicsList::fromArg([]));
 				unset($this->deferredItems[$key]);
 			}
 			return true;
@@ -157,7 +158,7 @@ class Psr6Decorator implements CacheItemPoolInterface {
 
 		$now = new \DateTime();
 		try {
-			$this->cacheStore->store($key, [], $item->get(), $item->calcTtl(), $now);
+			$this->cacheStore->store($key, CharacteristicsList::fromArg([]), $item->get(), $item->calcTtl(), $now);
 			// not sure if the hit status must remain or not
 			$item->setHit(true);
 			return true;

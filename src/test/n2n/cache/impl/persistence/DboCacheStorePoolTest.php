@@ -10,6 +10,7 @@ use n2n\test\DbTestPdoUtil;
 use n2n\persistence\orm\attribute\DateTime;
 use n2n\cache\impl\CacheStorePools;
 use n2n\util\HashUtils;
+use n2n\cache\CharacteristicsList;
 
 class DboCacheStorePoolTest extends TestCase {
 	private Pdo $pdo;
@@ -27,10 +28,10 @@ class DboCacheStorePoolTest extends TestCase {
 		$pool->setDboCacheDataSize(DboCacheDataSize::STRING);
 
 		$store = $pool->lookupCacheStore('ns\\ns1');
-		$store->store('name', ['c1' => 'v1', 'c2' => 'v2'], 'huii');
+		$store->store('name', CharacteristicsList::fromArg(['c1' => 'v1', 'c2' => 'v2']), 'huii');
 		$this->assertTrue($store === $pool->lookupCacheStore('ns\\ns1'));
 
-		$pool->lookupCacheStore('ns\\ns2')->store('name', ['c1' => 'v1', 'c2' => 'v2'], 'huii');
+		$pool->lookupCacheStore('ns\\ns2')->store('name', CharacteristicsList::fromArg(['c1' => 'v1', 'c2' => 'v2']), 'huii');
 
 		$ns1TableName = HashUtils::base36Md5Hash('ns\\ns1');
 		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('holeradio_' . $ns1TableName . '_data'));
@@ -50,8 +51,8 @@ class DboCacheStorePoolTest extends TestCase {
 		$pool = CacheStorePools::dbo($this->pdo, 'holeradio_')
 				->setDboCacheDataSize(DboCacheDataSize::STRING);
 
-		$pool->lookupCacheStore('ns\\ns1')->store('name', ['c1' => 'v1', 'c2' => 'v2'], 'huii');
-		$pool->lookupCacheStore('ns\\ns2')->store('name', ['c1' => 'v1', 'c2' => 'v2'], 'huii');
+		$pool->lookupCacheStore('ns\\ns1')->store('name', CharacteristicsList::fromArg(['c1' => 'v1', 'c2' => 'v2']), 'huii');
+		$pool->lookupCacheStore('ns\\ns2')->store('name', CharacteristicsList::fromArg(['c1' => 'v1', 'c2' => 'v2']), 'huii');
 
 		$this->assertCount(4, $this->pdo->getMetaData()->getDatabase()->getMetaEntities());
 

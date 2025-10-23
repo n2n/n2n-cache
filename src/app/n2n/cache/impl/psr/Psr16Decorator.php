@@ -26,6 +26,7 @@ use n2n\cache\CacheStore;
 use Psr\SimpleCache\CacheInterface;
 use n2n\cache\CacheStoreOperationFailedException;
 use n2n\util\StringUtils;
+use n2n\cache\CharacteristicsList;
 
 /**
  * If any operation failed due to CacheStore related errors, a CacheStoreOperationFailedException should be thrown.
@@ -51,7 +52,7 @@ class Psr16Decorator implements CacheInterface {
 	 */
 	public function get(string $key, mixed $default = null): mixed {
 		$this->valKey($key);
-		return $this->cacheStore->get($key, [])?->getData() ?? $default;
+		return $this->cacheStore->get($key, CharacteristicsList::fromArg([]))?->getData() ?? $default;
 	}
 
 	/**
@@ -61,7 +62,7 @@ class Psr16Decorator implements CacheInterface {
 		$this->valKey($key);
 		$ttlDateInterval = PsrUtils::toDateIntervalOrNull($ttl);
 		try {
-			$this->cacheStore->store($key, [], $value, $ttlDateInterval, new \DateTimeImmutable('now'));
+			$this->cacheStore->store($key, CharacteristicsList::fromArg([]), $value, $ttlDateInterval, new \DateTimeImmutable('now'));
 			return true;
 		} catch (UnsupportedCacheStoreOperationException) {
 			return false;
@@ -74,7 +75,7 @@ class Psr16Decorator implements CacheInterface {
 	public function delete(string $key): bool {
 		$this->valKey($key);
 		try {
-			$this->cacheStore->remove($key, []);
+			$this->cacheStore->remove($key, CharacteristicsList::fromArg([]));
 			return true;
 		} catch (CacheStoreOperationFailedException $e) {
 			return false;
@@ -127,7 +128,7 @@ class Psr16Decorator implements CacheInterface {
 		array_walk($keys, fn ($key) => $this->valKey($key));
 		try {
 			foreach ($keys as $key) {
-				$this->cacheStore->remove($key, []);
+				$this->cacheStore->remove($key, CharacteristicsList::fromArg([]));
 			}
 			return true;
 		} catch (CacheStoreOperationFailedException $e) {
@@ -141,6 +142,6 @@ class Psr16Decorator implements CacheInterface {
 	 */
 	public function has(string $key): bool {
 		$this->valKey($key);
-		return ($this->cacheStore->get($key, []) !== null);
+		return ($this->cacheStore->get($key, CharacteristicsList::fromArg([])) !== null);
 	}
 }

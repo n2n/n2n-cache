@@ -4,6 +4,7 @@ namespace n2n\cache\impl\ephemeral;
 
 use n2n\cache\CacheItem;
 use n2n\cache\CacheStore;
+use n2n\cache\CharacteristicsList;
 
 class EphemeralCacheStore implements CacheStore {
 	/**
@@ -12,7 +13,7 @@ class EphemeralCacheStore implements CacheStore {
 	 */
     private $cacheItems = [];
 
-    public function store(string $name, array $characteristics, mixed $data, ?\DateInterval $ttl = null,
+    public function store(string $name, CharacteristicsList $characteristics, mixed $data, ?\DateInterval $ttl = null,
 			?\DateTimeInterface $now = null): void {
 		$this->remove($name, $characteristics);
 		$this->nsStore($name)[] = new CacheItem($name, $characteristics, $data);
@@ -22,11 +23,11 @@ class EphemeralCacheStore implements CacheStore {
 	 * Gets a CacheItem with matching characteristics.
 	 * Returns null if none is found.
 	 * @param string $name
-	 * @param array $characteristics
+	 * @param CharacteristicsList $characteristics
 	 * @param \DateTimeInterface|null $now
 	 * @return CacheItem|null
 	 */
-    public function get(string $name, array $characteristics, ?\DateTimeInterface $now = null): ?CacheItem {
+    public function get(string $name, CharacteristicsList $characteristics, ?\DateTimeInterface $now = null): ?CacheItem {
 		foreach ($this->nsStore($name) as $cacheItem) {
 			if ($cacheItem->matchesCharacteristics($characteristics)) {
 				return $cacheItem;
@@ -39,10 +40,10 @@ class EphemeralCacheStore implements CacheStore {
 	/**
 	 * Removes a CacheItem with matching characteristics if it exists.
 	 * @param string $name
-	 * @param array $characteristics
+	 * @param CharacteristicsList $characteristics
 	 * @return void
 	 */
-    public function remove(string $name, array $characteristics): void {
+    public function remove(string $name, CharacteristicsList $characteristics): void {
         foreach ($this->nsStore($name) as $i => $cacheItem) {
 			if ($cacheItem->matchesCharacteristics($characteristics)) {
 				unset($this->cacheItems[$name][$i]);
@@ -53,11 +54,11 @@ class EphemeralCacheStore implements CacheStore {
 
 	/**
 	 * @param string $name
-	 * @param array|null $characteristicNeedles
+	 * @param CharacteristicsList|null $characteristicNeedles
 	 * @param \DateTimeInterface|null $now
 	 * @return CacheItem[]
 	 */
-    public function findAll(string $name, ?array $characteristicNeedles = null, ?\DateTimeInterface $now = null): array {
+    public function findAll(string $name, ?CharacteristicsList $characteristicNeedles = null, ?\DateTimeInterface $now = null): array {
         $found = [];
 		$cacheItems = $this->nsStore($name);
 
@@ -76,7 +77,7 @@ class EphemeralCacheStore implements CacheStore {
 		return $found;
     }
 
-    public function removeAll(?string $name, ?array $characteristicNeedles = null): void {
+    public function removeAll(?string $name, ?CharacteristicsList $characteristicNeedles = null): void {
 		if ($name === null && $characteristicNeedles === null) {
 			$this->clear();
 			return;
@@ -96,7 +97,7 @@ class EphemeralCacheStore implements CacheStore {
 		}
     }
 
-	public function removeAllContainingCharacteristics(string $namespace, array $characteristicNeedles): void {
+	public function removeAllContainingCharacteristics(string $namespace, CharacteristicsList $characteristicNeedles): void {
 		foreach ($this->nsStore($namespace) as $i => $cacheItem) {
 			if ($cacheItem->containsCharacteristics($characteristicNeedles)) {
 				unset($this->cacheItems[$namespace][$i]);

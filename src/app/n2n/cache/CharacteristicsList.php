@@ -34,4 +34,8 @@ class CharacteristicsList {
 
 		return new CharacteristicsList($arg);
 	}
+
+	function equals(CharacteristicsList $characteristicsList): bool {
+		return $this->characteristics === $characteristicsList->characteristics;
+	}
 }

@@ -30,10 +30,10 @@ interface CacheStore {
 	 * {@link UnsupportedCacheStoreOperationException} must be thrown.
 	 *
 	 * @param string $name
-	 * @param string[] $characteristics e. g. <code>['category' => 'news', 'mode' => 'some-mode']</code>
+	 * @param CharacteristicsList $characteristics e. g. <code>['category' => 'news', 'mode' => 'some-mode']</code>
 	 * @param mixed $data
-	 * @param \DateTimeInterface|null $now
 	 * @param \DateInterval|null $ttl
+	 * @param \DateTimeInterface|null $now
 	 */
 	public function store(string $name, CharacteristicsList $characteristics, mixed $data, ?\DateInterval $ttl = null,
 			?\DateTimeInterface $now = null): void;
@@ -42,7 +42,7 @@ interface CacheStore {
 	 * Returns the CacheItem which has been stored with exactly these params (name and characteristics).
 	 *
 	 * @param string $name
-	 * @param string[] $characteristics
+	 * @param CharacteristicsList $characteristics
 	 * @param \DateTimeInterface|null $now
 	 * @return CacheItem|null null if item does not exist
 	 * @throws CorruptedCacheStoreException
@@ -53,7 +53,7 @@ interface CacheStore {
 	 * Remove the data which has been stored with exactly these params (name and characteristics).
 	 *
 	 * @param string $name
-	 * @param string[] $characteristics
+	 * @param CharacteristicsList $characteristics
 	 */
 	public function remove(string $name, CharacteristicsList $characteristics): void;
 
@@ -64,7 +64,7 @@ interface CacheStore {
 	 * ['category' => 'news', 'mode' => 'some-other-mode] not.
 	 *
 	 * @param string $name
-	 * @param string[] $characteristicNeedles
+	 * @param ?CharacteristicsList $characteristicNeedles
 	 * @param \DateTimeInterface|null $now
 	 * @return CacheItem[]
 	 */
@@ -74,7 +74,7 @@ interface CacheStore {
 	 * Returns the CacheItems which has been stored with exactly this name (if provided) and contains all the passed
 	 * characteristicNeedles (see {@link CacheStore::findAll()} to understand the concept of characteristicNeedles).
 	 * @param string|null $name
-	 * @param string[] $characteristicNeedles
+	 * @param ?CharacteristicsList $characteristicNeedles
 	 */
 	public function removeAll(?string $name, ?CharacteristicsList $characteristicNeedles = null): void;
 
