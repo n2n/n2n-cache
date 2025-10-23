@@ -35,7 +35,7 @@ interface CacheStore {
 	 * @param \DateTimeInterface|null $now
 	 * @param \DateInterval|null $ttl
 	 */
-	public function store(string $name, array $characteristics, mixed $data, ?\DateInterval $ttl = null,
+	public function store(string $name, CharacteristicsList $characteristics, mixed $data, ?\DateInterval $ttl = null,
 			?\DateTimeInterface $now = null): void;
 
 	/**
@@ -47,7 +47,7 @@ interface CacheStore {
 	 * @return CacheItem|null null if item does not exist
 	 * @throws CorruptedCacheStoreException
 	 */
-	public function get(string $name, array $characteristics, ?\DateTimeInterface $now = null): ?CacheItem;
+	public function get(string $name, CharacteristicsList $characteristics, ?\DateTimeInterface $now = null): ?CacheItem;
 
 	/**
 	 * Remove the data which has been stored with exactly these params (name and characteristics).
@@ -55,7 +55,7 @@ interface CacheStore {
 	 * @param string $name
 	 * @param string[] $characteristics
 	 */
-	public function remove(string $name, array $characteristics): void;
+	public function remove(string $name, CharacteristicsList $characteristics): void;
 
 	/**
 	 * Returns the CacheItems which has been stored with exactly this name and contains all the passed characteristicNeedles.
@@ -68,7 +68,7 @@ interface CacheStore {
 	 * @param \DateTimeInterface|null $now
 	 * @return CacheItem[]
 	 */
-	public function findAll(string $name, ?array $characteristicNeedles = null, ?\DateTimeInterface $now = null): array;
+	public function findAll(string $name, ?CharacteristicsList $characteristicNeedles = null, ?\DateTimeInterface $now = null): array;
 
 	/**
 	 * Returns the CacheItems which has been stored with exactly this name (if provided) and contains all the passed
@@ -76,7 +76,7 @@ interface CacheStore {
 	 * @param string|null $name
 	 * @param string[] $characteristicNeedles
 	 */
-	public function removeAll(?string $name, ?array $characteristicNeedles = null): void;
+	public function removeAll(?string $name, ?CharacteristicsList $characteristicNeedles = null): void;
 
 	/**
 	 * Remove all CacheItems that are considered old by the ttl parameter provided when stored (see {@link self::store()})

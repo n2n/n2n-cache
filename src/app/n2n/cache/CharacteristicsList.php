@@ -15,19 +15,23 @@ class CharacteristicsList {
 		return $this->characteristics;
 	}
 
-	static function fromArgs(array $args): CharacteristicsList {
-		foreach ($args as $key => $value) {
+	static function fromArg(array|CharacteristicsList $arg): CharacteristicsList {
+		if ($arg instanceof CharacteristicsList) {
+			return $arg;
+		}
+
+		foreach ($arg as $key => $value) {
 			if (is_scalar($value)) {
 				continue;
 			}
 
 			try {
-				$args[$key] = StringUtils::strOf($value, false);
+				$arg[$key] = StringUtils::strOf($value, false);
 			} catch (\InvalidArgumentException $e) {
 				continue;
 			}
 		}
 
-		return new CharacteristicsList($args);
+		return new CharacteristicsList($arg);
 	}
 }
