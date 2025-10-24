@@ -30,32 +30,32 @@ interface CacheStore {
 	 * {@link UnsupportedCacheStoreOperationException} must be thrown.
 	 *
 	 * @param string $name
-	 * @param CharacteristicsList $characteristics e. g. <code>['category' => 'news', 'mode' => 'some-mode']</code>
+	 * @param CharacteristicsList $characteristicsList e. g. <code>['category' => 'news', 'mode' => 'some-mode']</code>
 	 * @param mixed $data
 	 * @param \DateInterval|null $ttl
 	 * @param \DateTimeInterface|null $now
 	 */
-	public function store(string $name, CharacteristicsList $characteristics, mixed $data, ?\DateInterval $ttl = null,
+	public function store(string $name, CharacteristicsList $characteristicsList, mixed $data, ?\DateInterval $ttl = null,
 			?\DateTimeInterface $now = null): void;
 
 	/**
 	 * Returns the CacheItem which has been stored with exactly these params (name and characteristics).
 	 *
 	 * @param string $name
-	 * @param CharacteristicsList $characteristics
+	 * @param CharacteristicsList $characteristicsList
 	 * @param \DateTimeInterface|null $now
 	 * @return CacheItem|null null if item does not exist
 	 * @throws CorruptedCacheStoreException
 	 */
-	public function get(string $name, CharacteristicsList $characteristics, ?\DateTimeInterface $now = null): ?CacheItem;
+	public function get(string $name, CharacteristicsList $characteristicsList, ?\DateTimeInterface $now = null): ?CacheItem;
 
 	/**
 	 * Remove the data which has been stored with exactly these params (name and characteristics).
 	 *
 	 * @param string $name
-	 * @param CharacteristicsList $characteristics
+	 * @param CharacteristicsList $characteristicsList
 	 */
-	public function remove(string $name, CharacteristicsList $characteristics): void;
+	public function remove(string $name, CharacteristicsList $characteristicsList): void;
 
 	/**
 	 * Returns the CacheItems which has been stored with exactly this name and contains all the passed characteristicNeedles.
@@ -64,19 +64,19 @@ interface CacheStore {
 	 * ['category' => 'news', 'mode' => 'some-other-mode] not.
 	 *
 	 * @param string $name
-	 * @param ?CharacteristicsList $characteristicNeedles
+	 * @param ?CharacteristicsList $characteristicNeedlesList
 	 * @param \DateTimeInterface|null $now
 	 * @return CacheItem[]
 	 */
-	public function findAll(string $name, ?CharacteristicsList $characteristicNeedles = null, ?\DateTimeInterface $now = null): array;
+	public function findAll(string $name, ?CharacteristicsList $characteristicNeedlesList = null, ?\DateTimeInterface $now = null): array;
 
 	/**
 	 * Returns the CacheItems which has been stored with exactly this name (if provided) and contains all the passed
 	 * characteristicNeedles (see {@link CacheStore::findAll()} to understand the concept of characteristicNeedles).
 	 * @param string|null $name
-	 * @param ?CharacteristicsList $characteristicNeedles
+	 * @param ?CharacteristicsList $characteristicNeedlesList
 	 */
-	public function removeAll(?string $name, ?CharacteristicsList $characteristicNeedles = null): void;
+	public function removeAll(?string $name, ?CharacteristicsList $characteristicNeedlesList = null): void;
 
 	/**
 	 * Remove all CacheItems that are considered old by the ttl parameter provided when stored (see {@link self::store()})

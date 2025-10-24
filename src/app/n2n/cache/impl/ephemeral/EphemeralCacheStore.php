@@ -13,23 +13,23 @@ class EphemeralCacheStore implements CacheStore {
 	 */
     private $cacheItems = [];
 
-    public function store(string $name, CharacteristicsList $characteristics, mixed $data, ?\DateInterval $ttl = null,
+    public function store(string $name, CharacteristicsList $characteristicsList, mixed $data, ?\DateInterval $ttl = null,
 			?\DateTimeInterface $now = null): void {
-		$this->remove($name, $characteristics);
-		$this->nsStore($name)[] = new CacheItem($name, $characteristics, $data);
+		$this->remove($name, $characteristicsList);
+		$this->nsStore($name)[] = new CacheItem($name, $characteristicsList, $data);
     }
 
 	/**
 	 * Gets a CacheItem with matching characteristics.
 	 * Returns null if none is found.
 	 * @param string $name
-	 * @param CharacteristicsList $characteristics
+	 * @param CharacteristicsList $characteristicsList
 	 * @param \DateTimeInterface|null $now
 	 * @return CacheItem|null
 	 */
-    public function get(string $name, CharacteristicsList $characteristics, ?\DateTimeInterface $now = null): ?CacheItem {
+    public function get(string $name, CharacteristicsList $characteristicsList, ?\DateTimeInterface $now = null): ?CacheItem {
 		foreach ($this->nsStore($name) as $cacheItem) {
-			if ($cacheItem->matchesCharacteristics($characteristics)) {
+			if ($cacheItem->matchesCharacteristics($characteristicsList)) {
 				return $cacheItem;
 			}
 		}
@@ -40,12 +40,12 @@ class EphemeralCacheStore implements CacheStore {
 	/**
 	 * Removes a CacheItem with matching characteristics if it exists.
 	 * @param string $name
-	 * @param CharacteristicsList $characteristics
+	 * @param CharacteristicsList $characteristicsList
 	 * @return void
 	 */
-    public function remove(string $name, CharacteristicsList $characteristics): void {
+    public function remove(string $name, CharacteristicsList $characteristicsList): void {
         foreach ($this->nsStore($name) as $i => $cacheItem) {
-			if ($cacheItem->matchesCharacteristics($characteristics)) {
+			if ($cacheItem->matchesCharacteristics($characteristicsList)) {
 				unset($this->cacheItems[$name][$i]);
 				return;
 			}
@@ -54,20 +54,20 @@ class EphemeralCacheStore implements CacheStore {
 
 	/**
 	 * @param string $name
-	 * @param CharacteristicsList|null $characteristicNeedles
+	 * @param CharacteristicsList|null $characteristicNeedlesList
 	 * @param \DateTimeInterface|null $now
 	 * @return CacheItem[]
 	 */
-    public function findAll(string $name, ?CharacteristicsList $characteristicNeedles = null, ?\DateTimeInterface $now = null): array {
+    public function findAll(string $name, ?CharacteristicsList $characteristicNeedlesList = null, ?\DateTimeInterface $now = null): array {
         $found = [];
 		$cacheItems = $this->nsStore($name);
 
-		if (null === $characteristicNeedles) {
+		if (null === $characteristicNeedlesList) {
 			return $cacheItems;
 		}
 
 		foreach ($cacheItems as $cacheItem) {
-			if (!$cacheItem->containsCharacteristics($characteristicNeedles)) {
+			if (!$cacheItem->containsCharacteristics($characteristicNeedlesList)) {
 				continue;
 			}
 
@@ -77,23 +77,23 @@ class EphemeralCacheStore implements CacheStore {
 		return $found;
     }
 
-    public function removeAll(?string $name, ?CharacteristicsList $characteristicNeedles = null): void {
-		if ($name === null && $characteristicNeedles === null) {
+    public function removeAll(?string $name, ?CharacteristicsList $characteristicNeedlesList = null): void {
+		if ($name === null && $characteristicNeedlesList === null) {
 			$this->clear();
 			return;
 		}
 
-		if ($characteristicNeedles === null) {
+		if ($characteristicNeedlesList === null) {
 			unset($this->cacheItems[$name]);
 			return;
 		}
 
 		if ($name === null) {
 			foreach ($this->cacheItems as $namespace => $cacheItems) {
-				$this->removeAllContainingCharacteristics($namespace, $characteristicNeedles);
+				$this->removeAllContainingCharacteristics($namespace, $characteristicNeedlesList);
 			}
 		} else {
-			$this->removeAllContainingCharacteristics($name, $characteristicNeedles);
+			$this->removeAllContainingCharacteristics($name, $characteristicNeedlesList);
 		}
     }
 

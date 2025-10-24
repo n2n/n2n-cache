@@ -107,7 +107,7 @@ class DboCacheStore implements CacheStore {
 		return $tablesCreated;
 	}
 
-	public function store(string $name, CharacteristicsList $characteristics, mixed $data, ?\DateInterval $ttl = null,
+	public function store(string $name, CharacteristicsList $characteristicsList, mixed $data, ?\DateInterval $ttl = null,
 			?\DateTimeInterface $now = null): void {
 		$now ??= new \DateTime();
 		$createdAt = $now->getTimestamp();
@@ -117,16 +117,16 @@ class DboCacheStore implements CacheStore {
 		}
 
 		$this->tableCheckedCall(/** @throws DboException */ function ()
-					use (&$name, &$characteristics, &$data, &$createdAt, &$expiresAt) {
-				$this->pdoCacheEngine->write($name, $characteristics->toArray(), $data, $createdAt, $expiresAt);
+					use (&$name, &$characteristicsList, &$data, &$createdAt, &$expiresAt) {
+				$this->pdoCacheEngine->write($name, $characteristicsList, $data, $createdAt, $expiresAt);
 			});
 	}
 
-	public function get(string $name, CharacteristicsList $characteristics, ?\DateTimeInterface $now = null): ?CacheItem {
+	public function get(string $name, CharacteristicsList $characteristicsList, ?\DateTimeInterface $now = null): ?CacheItem {
 		$expiredByTime = ($now ?? new \DateTime())->getTimestamp();
 
-		$result = $this->tableCheckedCall(/** @throws DboException */ function () use (&$name, &$characteristics, &$expiredByTime) {
-			return $this->pdoCacheEngine->read($name, $characteristics->toArray(), $expiredByTime);
+		$result = $this->tableCheckedCall(/** @throws DboException */ function () use (&$name, &$characteristicsList, &$expiredByTime) {
+			return $this->pdoCacheEngine->read($name, $characteristicsList, $expiredByTime);
 		});
 
 		return self::parseCacheItem($result);
@@ -141,31 +141,31 @@ class DboCacheStore implements CacheStore {
 				$result[DboCacheEngine::DATA_COLUMN]);
 	}
 
-	public function remove(string $name, CharacteristicsList $characteristics): void {
-		$this->tableCheckedCall(/** @throws DboException */ function () use (&$name, &$characteristics) {
-			$this->pdoCacheEngine->delete($name, $characteristics->toArray());
+	public function remove(string $name, CharacteristicsList $characteristicsList): void {
+		$this->tableCheckedCall(/** @throws DboException */ function () use (&$name, &$characteristicsList) {
+			$this->pdoCacheEngine->delete($name, $characteristicsList);
 		});
 	}
 
-	public function findAll(string $name, ?CharacteristicsList $characteristicNeedles = null, ?\DateTimeInterface $now = null): array {
+	public function findAll(string $name, ?CharacteristicsList $characteristicNeedlesList = null, ?\DateTimeInterface $now = null): array {
 		$expiredByTime = ($now ?? new \DateTime())->getTimestamp();
 
-		$results = $this->tableCheckedCall(/** @throws DboException */ function () use (&$name, &$characteristicNeedles,
-				&$expiredByTime) {
-			return $this->pdoCacheEngine->findBy($name, $characteristicNeedles->toArray(), $expiredByTime);
+		$results = $this->tableCheckedCall(/** @throws DboException */ function () use ($name, $characteristicNeedlesList,
+				$expiredByTime) {
+			return $this->pdoCacheEngine->findBy($name, $characteristicNeedlesList, $expiredByTime);
 		});
 
 		return array_map(fn ($result) => self::parseCacheItem($result), $results);
 	}
 
-	public function removeAll(?string $name, ?CharacteristicsList $characteristicNeedles = null): void {
-		$this->tableCheckedCall(/** @throws DboException */ function () use (&$name, &$characteristics) {
-			$this->pdoCacheEngine->deleteBy($name, $characteristics);
+	public function removeAll(?string $name, ?CharacteristicsList $characteristicNeedlesList = null): void {
+		$this->tableCheckedCall(/** @throws DboException */ function () use ($name, $characteristicNeedlesList) {
+			$this->pdoCacheEngine->deleteBy($name, $characteristicNeedlesList);
 		});
 	}
 
 	public function clear(): void {
-		$this->tableCheckedCall(/** @throws DboException */ function () use (&$name, &$characteristics) {
+		$this->tableCheckedCall(/** @throws DboException */ function () {
 			$this->pdoCacheEngine->clear();
 		});
 	}

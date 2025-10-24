@@ -13,6 +13,7 @@ use n2n\spec\dbo\Dbo;
 use n2n\spec\dbo\meta\structure\IndexType;
 use n2n\util\BinaryUtils;
 use n2n\spec\dbo\err\DboException;
+use n2n\cache\CharacteristicsList;
 
 class DboCacheEngine {
 	const NAME_COLUMN = 'name';
@@ -198,7 +199,8 @@ class DboCacheEngine {
 	/**
 	 * @throws DboException
 	 */
-	function read(string $name, array $characteristics, int $expiredByTime): ?array {
+	function read(string $name, CharacteristicsList $characteristicsList, int $expiredByTime): ?array {
+		$characteristics = $characteristicsList->toArray();
 		$characteristicsStr = $this->serializeCharacteristics($characteristics);
 		$rows = $this->selectFromDataTable($name, $characteristicsStr);
 
@@ -226,10 +228,10 @@ class DboCacheEngine {
 
 		$dataStr = $row[self::DATA_COLUMN];
 		try {
-			$row[self::DATA_COLUMN] = ($this->igbinaryEnabled
+			$row[self::DATA_COLUMN] = new CharacteristicsList($this->igbinaryEnabled
 					? BinaryUtils::igbinaryUnserialize((string) $dataStr)
 					: StringUtils::unserialize((string) $dataStr));
-		} catch (UnserializationFailedException $e) {
+		} catch (UnserializationFailedException|\InvalidArgumentException $e) {
 			throw new CorruptedCacheStoreException('Could not unserialize data for ' . $row[self::NAME_COLUMN]
 					. ': ' . StringUtils::reduce($dataStr, 25, '...'), previous: $e);
 		}
@@ -300,7 +302,8 @@ class DboCacheEngine {
 	/**
 	 * @throws DboException
 	 */
-	function delete(string $name, array $characteristics): void {
+	function delete(string $name, CharacteristicsList $characteristicsList): void {
+		$characteristics = $characteristicsList->toArray();
 		$characteristicsStr = $this->serializeCharacteristics($characteristics);
 
 		$this->execInTransaction(function () use ($name, $characteristicsStr) {
@@ -332,7 +335,8 @@ class DboCacheEngine {
 	/**
 	 * @throws DboException
 	 */
-	function deleteBy(?string $nameNeedle, ?array $characteristicNeedles): void {
+	function deleteBy(?string $nameNeedle, ?CharacteristicsList $characteristicNeedlesList): void {
+		$characteristicNeedles = $characteristicNeedlesList->toArray();
 		$characteristicsStr = $this->serializeCharacteristics($characteristicNeedles);
 		$characteristicNeedleStrs = $this->splitAndSerializeCharacteristics($characteristicNeedles);
 
@@ -368,7 +372,8 @@ class DboCacheEngine {
 	 * @return array
 	 * @throws DboException
 	 */
-	function findBy(?string $nameNeedle, ?array $characteristicNeedles, int $expiredByTime): array {
+	function findBy(?string $nameNeedle, ?CharacteristicsList $characteristicNeedlesList, int $expiredByTime): array {
+		$characteristicNeedles = $characteristicNeedlesList?->toArray();
 		$characteristicsStr = $this->serializeCharacteristics($characteristicNeedles);
 		$characteristicNeedleStrs = $this->splitAndSerializeCharacteristics($characteristicNeedles);
 
@@ -413,7 +418,8 @@ class DboCacheEngine {
 	/**
 	 * @throws DboException
 	 */
-	function write(string $name, array $characteristics, mixed $data, int $createdAtTime, ?int $expiresAtTime): void {
+	function write(string $name, CharacteristicsList $characteristicsList, mixed $data, int $createdAtTime, ?int $expiresAtTime): void {
+		$characteristics = $characteristicsList->toArray();
 		$characteristicsStr = $this->serializeCharacteristics($characteristics);
 		$dataStr = $this->serializeData($data);
 

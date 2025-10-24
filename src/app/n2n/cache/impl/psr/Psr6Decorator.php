@@ -73,7 +73,7 @@ class Psr6Decorator implements CacheItemPoolInterface {
 			return new Psr6CacheItem($key,$hit ? $this->deferredItems[$key]->get() : null, $hit);
 		}
 
-		$cacheItem = $this->cacheStore->get($key, CharacteristicsList::fromArg([]));
+		$cacheItem = $this->cacheStore->get($key, new CharacteristicsList([]));
 		if ($cacheItem === null) {
 			return new Psr6CacheItem($key, null, false);
 		}
@@ -100,7 +100,7 @@ class Psr6Decorator implements CacheItemPoolInterface {
 		$this->valKey($key);
 
 		if (!isset($this->deferredItems[$key])) {
-			return $this->cacheStore->get($key, CharacteristicsList::fromArg([])) !== null;
+			return $this->cacheStore->get($key, new CharacteristicsList([])) !== null;
 		}
 
 		return $this->checkIfNotExpired($this->deferredItems[$key]);
@@ -138,7 +138,7 @@ class Psr6Decorator implements CacheItemPoolInterface {
 		try {
 			foreach ($keys as $key) {
 				$this->valKey($key);
-				$this->cacheStore->remove($key, CharacteristicsList::fromArg([]));
+				$this->cacheStore->remove($key, new CharacteristicsList([]));
 				unset($this->deferredItems[$key]);
 			}
 			return true;
@@ -158,7 +158,7 @@ class Psr6Decorator implements CacheItemPoolInterface {
 
 		$now = new \DateTime();
 		try {
-			$this->cacheStore->store($key, CharacteristicsList::fromArg([]), $item->get(), $item->calcTtl(), $now);
+			$this->cacheStore->store($key, new CharacteristicsList([]), $item->get(), $item->calcTtl(), $now);
 			// not sure if the hit status must remain or not
 			$item->setHit(true);
 			return true;

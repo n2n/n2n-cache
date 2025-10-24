@@ -23,19 +23,14 @@
 namespace n2n\cache;
 
 class CacheItem {
-	private string $name;
-	private CharacteristicsList $characteristics;
-	public mixed $data;
+
 
 	/**
 	 * @param string $name
-	 * @param CharacteristicsList $characteristics
+	 * @param CharacteristicsList $characteristicsList
 	 * @param mixed $data
 	 */
-	public function __construct(string $name, CharacteristicsList $characteristics, mixed $data) {
-		$this->name = $name;
-		$this->setCharacteristics($characteristics);
-		$this->data = $data;
+	public function __construct(private string $name, private CharacteristicsList $characteristicsList, private mixed $data) {
 	}
 
 	/**
@@ -55,12 +50,12 @@ class CacheItem {
 	/**
 	 * @return CharacteristicsList
 	 */
-	public function getCharacteristics(): CharacteristicsList {
-		return $this->characteristics;
+	public function getCharacteristicsList(): CharacteristicsList {
+		return $this->characteristicsList;
 	}
 
-	public function setCharacteristics(CharacteristicsList $characteristics): void {
-		$this->characteristics = $characteristics;
+	public function setCharacteristicsList(CharacteristicsList $characteristicsList): void {
+		$this->characteristicsList = $characteristicsList;
 	}
 
 	/**
@@ -68,22 +63,15 @@ class CacheItem {
 	 * @return bool
 	 */
 	function matchesCharacteristics(CharacteristicsList $characteristics): bool {
-		return $this->characteristics->equals($characteristics);
+		return $this->characteristicsList->equals($characteristics);
 	}
 
 	/**
-	 * @param CharacteristicsList $characteristicNeedles
+	 * @param CharacteristicsList $characteristicNeedlesList
 	 * @return bool
 	 */
-	function containsCharacteristics(CharacteristicsList $characteristicNeedles): bool {
-		foreach ($characteristicNeedles->toArray() as $key => $value) {
-			if (!array_key_exists($key, $this->characteristics->toArray())
-					|| $value !== $this->characteristics->toArray()[$key]) {
-				return false;
-			}
-		}
-
-		return true;
+	function containsCharacteristics(CharacteristicsList $characteristicNeedlesList): bool {
+		return $this->characteristicsList->contains($characteristicNeedlesList);
 	}
 
 	/**

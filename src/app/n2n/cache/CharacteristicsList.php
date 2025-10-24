@@ -38,4 +38,14 @@ class CharacteristicsList {
 	function equals(CharacteristicsList $characteristicsList): bool {
 		return $this->characteristics === $characteristicsList->characteristics;
 	}
+
+	function contains(CharacteristicsList $characteristicsNeedlesList): bool {
+		foreach ($characteristicsNeedlesList->characteristics as $key => $value) {
+			if (!array_key_exists($key, $this->characteristics)
+					|| $value !== $this->characteristics[$key]) {
+				return false;
+			}
+		}
+		return true;
+	}
 }

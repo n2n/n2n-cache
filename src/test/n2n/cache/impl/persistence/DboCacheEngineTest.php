@@ -13,6 +13,7 @@ use n2n\spec\dbo\meta\structure\Table;
 use n2n\spec\dbo\meta\structure\BinaryColumn;
 use n2n\spec\dbo\err\DboException;
 use n2n\spec\dbo\meta\structure\IntegerColumn;
+use n2n\cache\CharacteristicsList;
 
 class DboCacheEngineTest extends TestCase {
 	private Pdo $pdo;
@@ -117,8 +118,8 @@ class DboCacheEngineTest extends TestCase {
 		$engine->createDataTable();
 		$engine->createCharacteristicTable();
 
-		$engine->write('holeradio', ['key' => 'value1'], 'data1', $time, null);
-		$engine->write('holeradio', ['key' => 'value2'], 'data2', $time, null);
+		$engine->write('holeradio', new CharacteristicsList(['key' => 'value1']), 'data1', $time, null);
+		$engine->write('holeradio', new CharacteristicsList(['key' => 'value2']), 'data2', $time, null);
 
 		$rows = $this->pdoUtil->select('data', null);
 		$this->assertCount(2, $rows);
@@ -132,7 +133,7 @@ class DboCacheEngineTest extends TestCase {
 				$rows[1]);
 		$this->assertCount(0, $this->pdoUtil->select('characteristic', null));
 
-		$engine->write('holeradio', ['key' => 'value1'], 'data11', $time, null);
+		$engine->write('holeradio', new CharacteristicsList(['key' => 'value1']), 'data11', $time, null);
 
 		$rows = $this->pdoUtil->select('data', null);
 		$this->assertCount(2, $rows);
@@ -154,8 +155,8 @@ class DboCacheEngineTest extends TestCase {
 		$engine->createDataTable();
 		$engine->createCharacteristicTable();
 
-		$engine->write('holeradio', ['key' => 'value1'], 'data1', $time, null);
-		$engine->write('holeradio', ['key' => 'value2'], 'data2', $time, null);
+		$engine->write('holeradio', new CharacteristicsList(['key' => 'value1']), 'data1', $time, null);
+		$engine->write('holeradio', new CharacteristicsList(['key' => 'value2']), 'data2', $time, null);
 
 		$rows = $this->pdoUtil->select('data', null);
 		$this->assertCount(2, $rows);
@@ -169,7 +170,7 @@ class DboCacheEngineTest extends TestCase {
 				$rows[1]);
 		$this->assertCount(0, $this->pdoUtil->select('characteristic', null));
 
-		$engine->write('holeradio', ['key' => 'value1'], 'data11', $time, null);
+		$engine->write('holeradio', new CharacteristicsList(['key' => 'value1']), 'data11', $time, null);
 
 		$rows = $this->pdoUtil->select('data', null);
 		$this->assertCount(2, $rows);
@@ -716,7 +717,7 @@ class DboCacheEngineTest extends TestCase {
 		$rows = $this->pdoUtil->select('characteristic', null);
 		$this->assertCount(2, $rows);
 
-		$rows = $engine->findBy('holeradio', ['key' => 'value1'], $time);
+		$rows = $engine->findBy('holeradio', new CharacteristicsList(['key' => 'value1']), $time);
 		$this->assertCount(1, $rows);
 		$this->assertEquals('data1', $rows[0]['data']);
 
@@ -743,7 +744,7 @@ class DboCacheEngineTest extends TestCase {
 		$engine->write('holeradio', ['key' => 'value2', 'o-key' => 'o-value'], 'data1', $time, null);
 
 		for ($i = 0; $i < 3; $i++) {
-			$this->assertCount(1, $engine->findBy('holeradio', ['key' => 'value1'], $time));
+			$this->assertCount(1, $engine->findBy('holeradio', new CharacteristicsList(['key' => 'value1']), $time));
 			$this->assertCount(2, $engine->findBy('holeradio', ['o-key' => 'o-value'], $time));
 			$this->assertEquals('holeradio', $engine->read('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], $time)['name']);
 		}

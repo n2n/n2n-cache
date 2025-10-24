@@ -20,7 +20,7 @@ class EphemeralCacheStoreTest extends TestCase {
 		$cacheItem = $this->ephemeralCacheStore->get($name, $characteristics);
 
 		$this->assertEquals($name, $cacheItem->getName());
-		$this->assertEquals($characteristics, $cacheItem->getCharacteristics());
+		$this->assertEquals($characteristics, $cacheItem->getCharacteristicsList());
 		$this->assertEquals($data, $cacheItem->getData());
 
 		$this->ephemeralCacheStore->store($name, $characteristics, 'otherData');
@@ -36,7 +36,7 @@ class EphemeralCacheStoreTest extends TestCase {
 		$cacheItem = $this->ephemeralCacheStore->get($name, $characteristics);
 
 		$this->assertEquals($name, $cacheItem->getName());
-		$this->assertEquals($characteristics, $cacheItem->getCharacteristics());
+		$this->assertEquals($characteristics, $cacheItem->getCharacteristicsList());
 		$this->assertEquals($data, $cacheItem->getData());
 
 		$characteristics = $characteristics->toArray();

@@ -125,7 +125,8 @@ class FileCacheStore implements CacheStore {
 		return $this->dirPath->ext($name);
 	}
 
-	private function buildFileName(array $characteristics) {
+	private function buildFileName(CharacteristicsList $characteristicsList): string {
+		$characteristics = $characteristicsList->toArray();
 		ksort($characteristics);
 
 		$fileName = HashUtils::base36Md5Hash(serialize($characteristics));
@@ -151,7 +152,7 @@ class FileCacheStore implements CacheStore {
 	/* (non-PHPdoc)
 	 * @see \n2n\cache\CacheStore::store()
 	 */
-	public function store(string $name, CharacteristicsList $characteristics, mixed $data, ?\DateInterval $ttl = null,
+	public function store(string $name, CharacteristicsList $characteristicsList, mixed $data, ?\DateInterval $ttl = null,
 			?\DateTimeInterface $now = null): void {
 		$nameDirPath = $this->buildNameDirPath($name);
 		if (!$nameDirPath->isDir()) {
@@ -171,11 +172,12 @@ class FileCacheStore implements CacheStore {
 			}
 		}
 
-		$filePath = $nameDirPath->ext($this->buildFileName($characteristics->toArray()));
+		$filePath = $nameDirPath->ext($this->buildFileName($characteristicsList));
 
 		$lock = $this->createWriteLock((string) $filePath);
 		try {
-			IoUtils::putContentsSafe($filePath->__toString(), serialize(array('characteristics' => $characteristics,
+			IoUtils::putContentsSafe($filePath->__toString(), serialize(array(
+					'characteristics' => $characteristicsList->toArray(),
 					'data' => $data)));
 		} catch (IoException $e) {
 			throw new CacheStoreOperationFailedException($e->getMessage(), previous: $e);
@@ -228,31 +230,36 @@ class FileCacheStore implements CacheStore {
 			throw new CorruptedCacheStoreException('Could not retrieve file: ' . $filePath, 0, $e);
 		}
 
-		if (!isset($attrs['characteristics']) || !($attrs['characteristics'] instanceof CharacteristicsList) || !isset($attrs['data'])) {
+		if (!isset($attrs['characteristics']) || !is_array($attrs['characteristics']) || !isset($attrs['data'])) {
 			throw new CorruptedCacheStoreException('Corrupted cache file: ' . $filePath);
 		}
 
+		try {
+			$characteristicsList = new CharacteristicsList($attrs['characteristics']);
+		} catch (\InvalidArgumentException $e) {
+			throw new CorruptedCacheStoreException('Corrupted cache file: ' . $filePath, previous: $e);
+		}
 
-		$ci = new CacheItem($name, CharacteristicsList::fromArg($attrs['characteristics']), null);
+		$ci = new CacheItem($name, $characteristicsList, null);
 		$ci->data = &$attrs['data'];
 		return $ci;
 	}
 	/* (non-PHPdoc)
 	 * @see \n2n\cache\CacheStore::get()
 	 */
-	public function get(string $name, CharacteristicsList $characteristics, ?\DateTimeInterface $now = null): ?CacheItem {
+	public function get(string $name, CharacteristicsList $characteristicsList, ?\DateTimeInterface $now = null): ?CacheItem {
 		$nameDirPath = $this->buildNameDirPath($name);
 		if (!$nameDirPath->exists()) return null;
-		return $this->read($name, $nameDirPath->ext($this->buildFileName($characteristics->toArray())));
+		return $this->read($name, $nameDirPath->ext($this->buildFileName($characteristicsList)));
 	}
 	/* (non-PHPdoc)
 	 * @see \n2n\cache\CacheStore::remove()
 	 */
-	public function remove(string $name, CharacteristicsList $characteristics): void {
+	public function remove(string $name, CharacteristicsList $characteristicsList): void {
 		$nameDirPath = $this->buildNameDirPath($name);
 		if (!$nameDirPath->exists()) return;
 
-		$filePath = $nameDirPath->ext($this->buildFileName($characteristics->toArray()));
+		$filePath = $nameDirPath->ext($this->buildFileName($characteristicsList));
 		$this->unlink($filePath);
 	}
 
@@ -290,13 +297,8 @@ class FileCacheStore implements CacheStore {
 	 * @param array $characteristics
 	 * @return boolean
 	 */
-	private function inCharacteristics(CharacteristicsList $characteristicNeedles, array $characteristics): bool {
-		foreach ($characteristicNeedles as $key => $value) {
-			if (!array_key_exists($key, $characteristics)
-					|| $value !== $characteristics[$key]) return false;
-		}
-
-		return true;
+	private function inCharacteristics(CharacteristicsList $characteristicNeedles, CharacteristicsList $characteristics): bool {
+		return $characteristics->contains($characteristicNeedles);
 	}
 
 	/**
@@ -320,16 +322,16 @@ class FileCacheStore implements CacheStore {
 
 	}
 
-	public function findAll(string $name, ?CharacteristicsList $characteristicNeedles = null, ?\DateTimeInterface $now = null): array {
+	public function findAll(string $name, ?CharacteristicsList $characteristicNeedlesList = null, ?\DateTimeInterface $now = null): array {
 		$cacheItems = array();
 
-		foreach ($this->findFilePaths($name, $characteristicNeedles->toArray()) as $filePath) {
+		foreach ($this->findFilePaths($name, $characteristicNeedlesList->toArray()) as $filePath) {
 			$cacheItem = $this->read($name, $filePath);
 			if ($cacheItem === null) continue;
 
-			if ($characteristicNeedles === null
+			if ($characteristicNeedlesList === null
 					// hash collision detection
-					|| $this->inCharacteristics($characteristicNeedles, $cacheItem->getCharacteristics()->toArray())) {
+					|| $this->inCharacteristics($characteristicNeedlesList, $cacheItem->getCharacteristicsList())) {
 				$cacheItems[] = $cacheItem;
 			}
 		}
@@ -339,8 +341,8 @@ class FileCacheStore implements CacheStore {
 	/* (non-PHPdoc)
 	 * @see \n2n\cache\CacheStore::removeAll()
 	 */
-	public function removeAll(?string $name, ?CharacteristicsList $characteristicNeedles = null): void {
-		foreach ($this->findFilePaths($name, $characteristicNeedles?->toArray()) as $filePath) {
+	public function removeAll(?string $name, ?CharacteristicsList $characteristicNeedlesList = null): void {
+		foreach ($this->findFilePaths($name, $characteristicNeedlesList?->toArray()) as $filePath) {
 			$this->unlink($filePath);
 		}
 	}
