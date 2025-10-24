@@ -118,8 +118,8 @@ class DboCacheEngineTest extends TestCase {
 		$engine->createDataTable();
 		$engine->createCharacteristicTable();
 
-		$engine->write('holeradio', new CharacteristicsList(['key' => 'value1']), 'data1', $time, null);
-		$engine->write('holeradio', new CharacteristicsList(['key' => 'value2']), 'data2', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value1']), 'data1', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value2']), 'data2', $time, null);
 
 		$rows = $this->pdoUtil->select('data', null);
 		$this->assertCount(2, $rows);
@@ -133,7 +133,7 @@ class DboCacheEngineTest extends TestCase {
 				$rows[1]);
 		$this->assertCount(0, $this->pdoUtil->select('characteristic', null));
 
-		$engine->write('holeradio', new CharacteristicsList(['key' => 'value1']), 'data11', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value1']), 'data11', $time, null);
 
 		$rows = $this->pdoUtil->select('data', null);
 		$this->assertCount(2, $rows);
@@ -155,8 +155,8 @@ class DboCacheEngineTest extends TestCase {
 		$engine->createDataTable();
 		$engine->createCharacteristicTable();
 
-		$engine->write('holeradio', new CharacteristicsList(['key' => 'value1']), 'data1', $time, null);
-		$engine->write('holeradio', new CharacteristicsList(['key' => 'value2']), 'data2', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value1']), 'data1', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value2']), 'data2', $time, null);
 
 		$rows = $this->pdoUtil->select('data', null);
 		$this->assertCount(2, $rows);
@@ -170,7 +170,7 @@ class DboCacheEngineTest extends TestCase {
 				$rows[1]);
 		$this->assertCount(0, $this->pdoUtil->select('characteristic', null));
 
-		$engine->write('holeradio', new CharacteristicsList(['key' => 'value1']), 'data11', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value1']), 'data11', $time, null);
 
 		$rows = $this->pdoUtil->select('data', null);
 		$this->assertCount(2, $rows);
@@ -195,8 +195,8 @@ class DboCacheEngineTest extends TestCase {
 		$engine->createDataTable();
 		$engine->createCharacteristicTable();
 
-		$engine->write('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], 'data1', $time, null);
-		$engine->write('holeradio', ['key' => 'value2', 'o-key' => 'o-value', 'to-key' => 'to-value2'], 'data2', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value']), 'data1', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value2', 'o-key' => 'o-value', 'to-key' => 'to-value2']), 'data2', $time, null);
 
 		$rows = $this->pdoUtil->select('data', null);
 		$this->assertCount(2, $rows);
@@ -232,7 +232,7 @@ class DboCacheEngineTest extends TestCase {
 						'characteristic' => serialize(['to-key' => 'to-value2']), 'created_at' => $time, 'expires_at' => null],
 				$rows[4]);
 
-		$engine->write('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], 'data11', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value']), 'data11', $time, null);
 
 		$rows = $this->pdoUtil->select('data', null);
 		$this->assertCount(2, $rows);
@@ -259,7 +259,7 @@ class DboCacheEngineTest extends TestCase {
 		$engine->createDataTable();
 		$engine->createCharacteristicTable();
 
-		$engine->write('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], 'data1', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value']), 'data1', $time, null);
 
 		$rows = $this->pdoUtil->select('data', null);
 		$this->assertCount(1, $rows);
@@ -268,7 +268,7 @@ class DboCacheEngineTest extends TestCase {
 						'data' => serialize('data1'), 'created_at' => $time, 'expires_at' => null],
 				$rows[0]);
 
-		$engine->write('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], 'data2', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value']), 'data2', $time, null);
 
 		$rows = $this->pdoUtil->select('data', null);
 		$this->assertCount(1, $rows);
@@ -288,19 +288,19 @@ class DboCacheEngineTest extends TestCase {
 		$engine->createDataTable();
 		$engine->createCharacteristicTable();
 
-		$engine->write('holeradio', ['key' => 'value0'], 'data0', $time, null);
-		$engine->write('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], 'data1', $time, null);
-		$engine->write('holeradio', ['key' => 'value2', 'o-key' => 'o-value', 'to-key' => 'to-value2'], 'data2', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value0']), 'data0', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value']), 'data1', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value2', 'o-key' => 'o-value', 'to-key' => 'to-value2']), 'data2', $time, null);
 
 		$this->assertCount(3, $this->pdoUtil->select('data', null));
 		$this->assertCount(5, $this->pdoUtil->select('characteristic', null));
 
-		$engine->delete('holeradio', ['key' => 'value0']);
+		$engine->delete('holeradio', CharacteristicsList::fromArg(['key' => 'value0']));
 
 		$this->assertCount(2, $this->pdoUtil->select('data', null));
 		$this->assertCount(5, $this->pdoUtil->select('characteristic', null));
 
-		$engine->delete('holeradio', ['key' => 'value1', 'o-key' => 'o-value']);
+		$engine->delete('holeradio', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value']));
 
 		$rows = $this->pdoUtil->select('data', null);
 		$this->assertCount(1, $rows);
@@ -316,7 +316,7 @@ class DboCacheEngineTest extends TestCase {
 						'characteristic' => serialize(['key' => 'value2']), 'created_at' => $time, 'expires_at' => null],
 				$rows[0]);
 
-		$engine->delete('holeradio', ['key' => 'value2', 'o-key' => 'o-value', 'to-key' => 'to-value2']);
+		$engine->delete('holeradio', CharacteristicsList::fromArg(['key' => 'value2', 'o-key' => 'o-value', 'to-key' => 'to-value2']));
 
 		$this->assertCount(0, $this->pdoUtil->select('data', null));
 		$this->assertCount(0, $this->pdoUtil->select('characteristic', null));
@@ -332,13 +332,13 @@ class DboCacheEngineTest extends TestCase {
 		$engine->createDataTable();
 		$engine->createCharacteristicTable();
 
-		$engine->write('holeradio', ['key' => 'value0'], 'data0', $time, null);
-		$engine->write('holeradio2', ['key' => 'value0'], 'data0-2', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value0']), 'data0', $time, null);
+		$engine->write('holeradio2', CharacteristicsList::fromArg(['key' => 'value0']), 'data0-2', $time, null);
 
-		$engine->write('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], 'data1', $time, null);
-		$engine->write('holeradio2', ['key' => 'value1', 'o-key' => 'o-value', 'to-key' => 'to-value'], 'data1-2', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value']), 'data1', $time, null);
+		$engine->write('holeradio2', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value', 'to-key' => 'to-value']), 'data1-2', $time, null);
 
-		$engine->write('holeradio', ['key' => 'value2', 'o-key' => 'o-value', 'to-key' => 'to-value'], 'data2', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value2', 'o-key' => 'o-value', 'to-key' => 'to-value']), 'data2', $time, null);
 
 		$results = $engine->findBy('holeradio', null, $time);
 		$this->assertCount(3, $results);
@@ -346,17 +346,17 @@ class DboCacheEngineTest extends TestCase {
 		$this->assertEquals('data1', $results[1]['data']);
 		$this->assertEquals('data2', $results[2]['data']);
 
-		$results = $engine->findBy(null, ['key' => 'value0'], $time);
+		$results = $engine->findBy(null, CharacteristicsList::fromArg(['key' => 'value0']), $time);
 		$this->assertCount(2, $results);
 		$this->assertEquals('data0', $results[0]['data']);
 		$this->assertEquals('data0-2', $results[1]['data']);
 
-		$results = $engine->findBy(null, ['o-key' => 'o-value', 'to-key' => 'to-value'], $time);
+		$results = $engine->findBy(null, CharacteristicsList::fromArg(['o-key' => 'o-value', 'to-key' => 'to-value']), $time);
 		$this->assertCount(2, $results);
 		$this->assertEquals('data2', $results[0]['data']);
 		$this->assertEquals('data1-2', $results[1]['data']);
 
-		$results = $engine->findBy('holeradio', ['o-key' => 'o-value', 'to-key' => 'to-value'], $time);
+		$results = $engine->findBy('holeradio', CharacteristicsList::fromArg(['o-key' => 'o-value', 'to-key' => 'to-value']), $time);
 		$this->assertCount(1, $results);
 		$this->assertEquals('data2', $results[0]['data']);
 	}
@@ -371,11 +371,11 @@ class DboCacheEngineTest extends TestCase {
 		$engine->createDataTable();
 		$engine->createCharacteristicTable();
 
-		$engine->write('holeradio', ['key' => 'value0'], 'data0', $time, null);
-		$engine->write('holeradio2', ['key' => 'value0'], 'data0-2', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value0']), 'data0', $time, null);
+		$engine->write('holeradio2', CharacteristicsList::fromArg(['key' => 'value0']), 'data0-2', $time, null);
 
-		$engine->write('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], 'data1', $time, null);
-		$engine->write('holeradio2', ['key' => 'value1', 'o-key' => 'o-value', 'to-key' => 'to-value'], 'data1-2', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value']), 'data1', $time, null);
+		$engine->write('holeradio2', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value', 'to-key' => 'to-value']), 'data1-2', $time, null);
 
 		$this->assertCount(4, $this->pdoUtil->select('data', null));
 		$this->assertCount(5, $this->pdoUtil->select('characteristic', null));
@@ -408,16 +408,16 @@ class DboCacheEngineTest extends TestCase {
 		$engine->createDataTable();
 		$engine->createCharacteristicTable();
 
-		$engine->write('holeradio', ['key' => 'value'], 'data0', $time, null);
-		$engine->write('holeradio2', ['key' => 'value0-2'], 'data0-2', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value']), 'data0', $time, null);
+		$engine->write('holeradio2', CharacteristicsList::fromArg(['key' => 'value0-2']), 'data0-2', $time, null);
 
-		$engine->write('holeradio', ['key' => 'value', 'o-key' => 'o-value'], 'data1', $time, null);
-		$engine->write('holeradio2', ['key' => 'value1-2', 'o-key' => 'o-value', 'to-key' => 'to-value'], 'data1-2', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value', 'o-key' => 'o-value']), 'data1', $time, null);
+		$engine->write('holeradio2', CharacteristicsList::fromArg(['key' => 'value1-2', 'o-key' => 'o-value', 'to-key' => 'to-value']), 'data1-2', $time, null);
 
 		$this->assertCount(4, $this->pdoUtil->select('data', null));
 		$this->assertCount(5, $this->pdoUtil->select('characteristic', null));
 
-		$engine->deleteBy(null, ['key' => 'value']);
+		$engine->deleteBy(null, CharacteristicsList::fromArg(['key' => 'value']));
 
 		$rows = $this->pdoUtil->select('data', null);
 		$this->assertCount(2, $rows);
@@ -445,16 +445,16 @@ class DboCacheEngineTest extends TestCase {
 		$engine->createDataTable();
 		$engine->createCharacteristicTable();
 
-		$engine->write('holeradio', ['key' => 'value'], 'data0', $time, null);
-		$engine->write('holeradio2', ['key' => 'value0-2'], 'data0-2', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value']), 'data0', $time, null);
+		$engine->write('holeradio2', CharacteristicsList::fromArg(['key' => 'value0-2']), 'data0-2', $time, null);
 
-		$engine->write('holeradio', ['key' => 'value', 'o-key' => 'o-value', 'to-key' => 'to-value'], 'data1', $time, null);
-		$engine->write('holeradio2', ['key' => 'value1-2', 'o-key' => 'o-value', 'to-key' => 'to-value'], 'data1-2', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value', 'o-key' => 'o-value', 'to-key' => 'to-value']), 'data1', $time, null);
+		$engine->write('holeradio2', CharacteristicsList::fromArg(['key' => 'value1-2', 'o-key' => 'o-value', 'to-key' => 'to-value']), 'data1-2', $time, null);
 
 		$this->assertCount(4, $this->pdoUtil->select('data', null));
 		$this->assertCount(6, $this->pdoUtil->select('characteristic', null));
 
-		$engine->deleteBy(null, ['o-key' => 'o-value', 'to-key' => 'to-value']);
+		$engine->deleteBy(null, CharacteristicsList::fromArg(['o-key' => 'o-value', 'to-key' => 'to-value']));
 
 		$rows = $this->pdoUtil->select('data', null);
 		$this->assertCount(2, $rows);
@@ -477,16 +477,16 @@ class DboCacheEngineTest extends TestCase {
 		$engine->createDataTable();
 		$engine->createCharacteristicTable();
 
-		$engine->write('holeradio', ['key' => 'value'], 'data0', $time, null);
-		$engine->write('holeradio2', ['key' => 'value0-2'], 'data0-2', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value']), 'data0', $time, null);
+		$engine->write('holeradio2', CharacteristicsList::fromArg(['key' => 'value0-2']), 'data0-2', $time, null);
 
-		$engine->write('holeradio', ['key' => 'value', 'o-key' => 'o-value'], 'data1', $time, null);
-		$engine->write('holeradio2', ['key' => 'value1-2', 'o-key' => 'o-value', 'to-key' => 'to-value'], 'data1-2', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value', 'o-key' => 'o-value']), 'data1', $time, null);
+		$engine->write('holeradio2', CharacteristicsList::fromArg(['key' => 'value1-2', 'o-key' => 'o-value', 'to-key' => 'to-value']), 'data1-2', $time, null);
 
 		$this->assertCount(4, $this->pdoUtil->select('data', null));
 		$this->assertCount(5, $this->pdoUtil->select('characteristic', null));
 
-		$engine->deleteBy('holeradio', ['key' => 'value']);
+		$engine->deleteBy('holeradio', CharacteristicsList::fromArg(['key' => 'value']));
 
 		$rows = $this->pdoUtil->select('data', null);
 		$this->assertCount(2, $rows);
@@ -502,16 +502,16 @@ class DboCacheEngineTest extends TestCase {
 		$engine->createDataTable();
 		$engine->createCharacteristicTable();
 
-		$engine->write('holeradio', ['key' => 'value'], 'data0', $time, null);
-		$engine->write('holeradio2', ['key' => 'value0-2'], 'data0-2', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value']), 'data0', $time, null);
+		$engine->write('holeradio2', CharacteristicsList::fromArg(['key' => 'value0-2']), 'data0-2', $time, null);
 
-		$engine->write('holeradio', ['key' => 'value', 'o-key' => 'o-value', 'to-key' => 'to-value'], 'data1', $time, null);
-		$engine->write('holeradio', ['key' => 'value1-2', 'o-key' => 'o-value', 'to-key' => 'to-value'], 'data1-2', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value', 'o-key' => 'o-value', 'to-key' => 'to-value']), 'data1', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value1-2', 'o-key' => 'o-value', 'to-key' => 'to-value']), 'data1-2', $time, null);
 
 		$this->assertCount(4, $this->pdoUtil->select('data', null));
 		$this->assertCount(6, $this->pdoUtil->select('characteristic', null));
 
-		$engine->deleteBy('holeradio', ['o-key' => 'o-value', 'to-key' => 'to-value']);
+		$engine->deleteBy('holeradio', CharacteristicsList::fromArg(['o-key' => 'o-value', 'to-key' => 'to-value']));
 
 		$rows = $this->pdoUtil->select('data', null);
 		$this->assertCount(2, $rows);
@@ -530,11 +530,11 @@ class DboCacheEngineTest extends TestCase {
 		$engine->createDataTable();
 		$engine->createCharacteristicTable();
 
-		$engine->write('holeradio', ['key' => 'value'], 'data0', $time, null);
-		$engine->write('holeradio2', ['key' => 'value0-2'], 'data0-2', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value']), 'data0', $time, null);
+		$engine->write('holeradio2', CharacteristicsList::fromArg(['key' => 'value0-2']), 'data0-2', $time, null);
 
-		$engine->write('holeradio', ['key' => 'value', 'o-key' => 'o-value', 'to-key' => 'to-value'], 'data1', $time, null);
-		$engine->write('holeradio', ['key' => 'value1-2', 'o-key' => 'o-value', 'to-key' => 'to-value'], 'data1-2', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value', 'o-key' => 'o-value', 'to-key' => 'to-value']), 'data1', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value1-2', 'o-key' => 'o-value', 'to-key' => 'to-value']), 'data1-2', $time, null);
 
 		$this->assertCount(4, $this->pdoUtil->select('data', null));
 		$this->assertCount(6, $this->pdoUtil->select('characteristic', null));
@@ -566,11 +566,11 @@ class DboCacheEngineTest extends TestCase {
 		$engine->createDataTable();
 		$engine->createCharacteristicTable();
 
-		$engine->write('holeradio-expired1', ['key' => 'value-expired', 'o-key' => 'o-value-expired'], 'data-expired1', $time, $time);
-		$engine->write('holeradio-expired2', ['key' => 'value-expired', 'o-key' => 'o-value-expired'], 'data-expired2', $time, $futureTime);
-		$engine->write('holeradio1', ['key' => 'value1', 'o-key' => 'o-value'], 'data1', $time, $future2Time);
-		$engine->write('holeradio2', ['key' => 'value2', 'o-key' => 'o-value'], 'data2', $futureTime, null);
-		$engine->write('holeradio3', ['key' => 'value3', 'o-key' => 'o-value'], 'data3', $future2Time, null);
+		$engine->write('holeradio-expired1', CharacteristicsList::fromArg(['key' => 'value-expired', 'o-key' => 'o-value-expired']), 'data-expired1', $time, $time);
+		$engine->write('holeradio-expired2', CharacteristicsList::fromArg(['key' => 'value-expired', 'o-key' => 'o-value-expired']), 'data-expired2', $time, $futureTime);
+		$engine->write('holeradio1', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value']), 'data1', $time, $future2Time);
+		$engine->write('holeradio2', CharacteristicsList::fromArg(['key' => 'value2', 'o-key' => 'o-value']), 'data2', $futureTime, null);
+		$engine->write('holeradio3', CharacteristicsList::fromArg(['key' => 'value3', 'o-key' => 'o-value']), 'data3', $future2Time, null);
 
 		$this->assertCount(5, $this->pdoUtil->select('data', null));
 		$this->assertCount(10, $this->pdoUtil->select('characteristic', null));
@@ -605,20 +605,20 @@ class DboCacheEngineTest extends TestCase {
 		$engine->createDataTable();
 		$engine->createCharacteristicTable();
 
-		$engine->write('holeradio-expired1', ['key' => 'value-expired', 'o-key' => 'o-value-expired'], 'data-expired1', $time, $time);
-		$engine->write('holeradio-expired2', ['key' => 'value-expired', 'o-key' => 'o-value-expired'], 'data-expired2', $time, $futureTime);
-		$engine->write('holeradio1', ['key' => 'value1', 'o-key' => 'o-value'], 'data1', $time, $future2Time);
-		$engine->write('holeradio2', ['key' => 'value2', 'o-key' => 'o-value'], 'data2', $futureTime, null);
-		$engine->write('holeradio3', ['key' => 'value3', 'o-key' => 'o-value'], 'data3', $future2Time, null);
+		$engine->write('holeradio-expired1', CharacteristicsList::fromArg(['key' => 'value-expired', 'o-key' => 'o-value-expired']), 'data-expired1', $time, $time);
+		$engine->write('holeradio-expired2', CharacteristicsList::fromArg(['key' => 'value-expired', 'o-key' => 'o-value-expired']), 'data-expired2', $time, $futureTime);
+		$engine->write('holeradio1', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value']), 'data1', $time, $future2Time);
+		$engine->write('holeradio2', CharacteristicsList::fromArg(['key' => 'value2', 'o-key' => 'o-value']), 'data2', $futureTime, null);
+		$engine->write('holeradio3', CharacteristicsList::fromArg(['key' => 'value3', 'o-key' => 'o-value']), 'data3', $future2Time, null);
 
 		$this->assertCount(5, $this->pdoUtil->select('data', null));
 		$this->assertCount(10, $this->pdoUtil->select('characteristic', null));
 
-		$this->assertNull($engine->read('holeradio-expired1', ['key' => 'value-expired', 'o-key' => 'o-value-expired'], $futureTime));
-		$this->assertNull($engine->read('holeradio-expired1', ['key' => 'value-expired', 'o-key' => 'o-value-expired'], $futureTime));
-		$this->assertEquals('data1', $engine->read('holeradio1', ['key' => 'value1', 'o-key' => 'o-value'], $futureTime)['data']);
-		$this->assertEquals('data2', $engine->read('holeradio2', ['key' => 'value2', 'o-key' => 'o-value'], $futureTime)['data']);
-		$this->assertEquals('data3',$engine->read('holeradio3', ['key' => 'value3', 'o-key' => 'o-value'], $futureTime)['data']);
+		$this->assertNull($engine->read('holeradio-expired1', CharacteristicsList::fromArg(['key' => 'value-expired', 'o-key' => 'o-value-expired']), $futureTime));
+		$this->assertNull($engine->read('holeradio-expired1', CharacteristicsList::fromArg(['key' => 'value-expired', 'o-key' => 'o-value-expired']), $futureTime));
+		$this->assertEquals('data1', $engine->read('holeradio1', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value']), $futureTime)['data']);
+		$this->assertEquals('data2', $engine->read('holeradio2', CharacteristicsList::fromArg(['key' => 'value2', 'o-key' => 'o-value']), $futureTime)['data']);
+		$this->assertEquals('data3',$engine->read('holeradio3', CharacteristicsList::fromArg(['key' => 'value3', 'o-key' => 'o-value']), $futureTime)['data']);
 
 		$rows = $this->pdoUtil->select('data', null);
 		$this->assertCount(3, $rows);
@@ -640,11 +640,11 @@ class DboCacheEngineTest extends TestCase {
 		$engine->createDataTable();
 		$engine->createCharacteristicTable();
 
-		$engine->write('holeradio1', ['key' => 'value1', 'o-key' => 'o-value'], 'data1', $time, null);
-		$engine->write('holeradio-expired1', ['key' => 'value-expired', 'o-key' => 'o-value-expired'], 'data-expired1', $pastTime, null);
-		$engine->write('holeradio-expired2', ['key' => 'value-expired', 'o-key' => 'o-value-expired'], 'data-expired2', $past2Time, $time);
-		$engine->write('holeradio2', ['key' => 'value2', 'o-key' => 'o-value'], 'data2', $time, $pastTime);
-		$engine->write('holeradio3', ['key' => 'value3', 'o-key' => 'o-value'], 'data3', $time, $past2Time);
+		$engine->write('holeradio1', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value']), 'data1', $time, null);
+		$engine->write('holeradio-expired1', CharacteristicsList::fromArg(['key' => 'value-expired', 'o-key' => 'o-value-expired']), 'data-expired1', $pastTime, null);
+		$engine->write('holeradio-expired2', CharacteristicsList::fromArg(['key' => 'value-expired', 'o-key' => 'o-value-expired']), 'data-expired2', $past2Time, $time);
+		$engine->write('holeradio2', CharacteristicsList::fromArg(['key' => 'value2', 'o-key' => 'o-value']), 'data2', $time, $pastTime);
+		$engine->write('holeradio3', CharacteristicsList::fromArg(['key' => 'value3', 'o-key' => 'o-value']), 'data3', $time, $past2Time);
 
 		$this->assertCount(5, $this->pdoUtil->select('data', null));
 		$this->assertCount(10, $this->pdoUtil->select('characteristic', null));
@@ -679,7 +679,7 @@ class DboCacheEngineTest extends TestCase {
 		$engine->createDataTable();
 		$engine->createCharacteristicTable();
 
-		$engine->write('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], 'data1', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value']), 'data1', $time, null);
 
 		$rows = $this->pdoUtil->select('data', null);
 		$this->assertCount(1, $rows);
@@ -700,28 +700,28 @@ class DboCacheEngineTest extends TestCase {
 				$rows[1]);
 
 
-		$row = $engine->read('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], $time);
+		$row = $engine->read('holeradio', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value']), $time);
 		$this->assertNotNull($row);
 		$this->assertEquals('data1', $row['data']);
 
-		$engine->delete('holeradio', ['key' => 'value1', 'o-key' => 'o-value']);
+		$engine->delete('holeradio', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value']));
 
 		$rows = $this->pdoUtil->select('data', null);
 		$this->assertCount(0, $rows);
 		$rows = $this->pdoUtil->select('characteristic', null);
 		$this->assertCount(0, $rows);
 
-		$engine->write('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], 'data1', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value']), 'data1', $time, null);
 		$rows = $this->pdoUtil->select('data', null);
 		$this->assertCount(1, $rows);
 		$rows = $this->pdoUtil->select('characteristic', null);
 		$this->assertCount(2, $rows);
 
-		$rows = $engine->findBy('holeradio', new CharacteristicsList(['key' => 'value1']), $time);
+		$rows = $engine->findBy('holeradio', CharacteristicsList::fromArg(['key' => 'value1']), $time);
 		$this->assertCount(1, $rows);
 		$this->assertEquals('data1', $rows[0]['data']);
 
-		$engine->deleteBy('holeradio', ['o-key' => 'o-value']);
+		$engine->deleteBy('holeradio', CharacteristicsList::fromArg(['o-key' => 'o-value']));
 
 		$rows = $this->pdoUtil->select('data', null);
 		$this->assertCount(0, $rows);
@@ -740,13 +740,13 @@ class DboCacheEngineTest extends TestCase {
 
 		$time = time();
 
-		$engine->write('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], 'data1', $time, null);
-		$engine->write('holeradio', ['key' => 'value2', 'o-key' => 'o-value'], 'data1', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value']), 'data1', $time, null);
+		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value2', 'o-key' => 'o-value']), 'data1', $time, null);
 
 		for ($i = 0; $i < 3; $i++) {
-			$this->assertCount(1, $engine->findBy('holeradio', new CharacteristicsList(['key' => 'value1']), $time));
-			$this->assertCount(2, $engine->findBy('holeradio', ['o-key' => 'o-value'], $time));
-			$this->assertEquals('holeradio', $engine->read('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], $time)['name']);
+			$this->assertCount(1, $engine->findBy('holeradio', CharacteristicsList::fromArg(['key' => 'value1']), $time));
+			$this->assertCount(2, $engine->findBy('holeradio', CharacteristicsList::fromArg(['o-key' => 'o-value']), $time));
+			$this->assertEquals('holeradio', $engine->read('holeradio', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value']), $time)['name']);
 		}
 	}
 
@@ -760,14 +760,14 @@ class DboCacheEngineTest extends TestCase {
 		$future = $time + 10;
 
 		for ($i = 0; $i < 3; $i++) {
-			$engine->write('holeradio', ['key' => 'value1', 'o-key' => 'o-value'], 'data1', $time, null);
-			$engine->write('holeradio2', ['key' => 'value2', 'o-key' => 'o-value'], 'data1', $time, null);
-			$engine->write('holeradio', ['key' => 'value2', 'o-key' => 'o-value-diff'], 'data1', $time, null);
-			$engine->write('holeradio', ['key' => 'value2', 'o-key' => 'o-value-diff2'], 'data1', $future, null);
+			$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value']), 'data1', $time, null);
+			$engine->write('holeradio2', CharacteristicsList::fromArg(['key' => 'value2', 'o-key' => 'o-value']), 'data1', $time, null);
+			$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value2', 'o-key' => 'o-value-diff']), 'data1', $time, null);
+			$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value2', 'o-key' => 'o-value-diff2']), 'data1', $future, null);
 
 			$this->assertCount(4, $this->pdoUtil->select('data', null));
 
-			$engine->deleteBy(null, ['key' => 'value1']);
+			$engine->deleteBy(null, CharacteristicsList::fromArg(['key' => 'value1']));
 
 			$this->assertCount(3, $this->pdoUtil->select('data', null));
 
@@ -779,7 +779,7 @@ class DboCacheEngineTest extends TestCase {
 
 			$this->assertCount(1, $this->pdoUtil->select('data', null));
 
-			$engine->delete('holeradio', ['key' => 'value2', 'o-key' => 'o-value-diff2']);
+			$engine->delete('holeradio', CharacteristicsList::fromArg(['key' => 'value2', 'o-key' => 'o-value-diff2']));
 
 			$this->assertCount(0, $this->pdoUtil->select('data', null));
 		}
