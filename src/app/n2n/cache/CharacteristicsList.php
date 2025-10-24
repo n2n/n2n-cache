@@ -15,8 +15,8 @@ class CharacteristicsList {
 		return $this->characteristics;
 	}
 
-	static function fromArg(array|CharacteristicsList $arg): CharacteristicsList {
-		if ($arg instanceof CharacteristicsList) {
+	static function fromArg(array|CharacteristicsList|null $arg): ?CharacteristicsList {
+		if ($arg === null || $arg instanceof CharacteristicsList) {
 			return $arg;
 		}
 
