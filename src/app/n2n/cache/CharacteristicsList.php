@@ -17,7 +17,7 @@ class CharacteristicsList {
 	}
 
 	function getValue(string $key): string|int|bool|null {
-		if (!$this->containsKey($key)) {
+		if ($this->containsKey($key)) {
 			return $this->characteristics[$key];
 		}
 		throw new OutOfBoundsException('Characteristic with key "' . $key . '" does not exist.');
