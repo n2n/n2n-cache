@@ -9,7 +9,7 @@ use OutOfBoundsException;
 class CharacteristicsList {
 
 	function __construct(private array $characteristics) {
-		ArgUtils::valArray($characteristics, 'scalar');
+		ArgUtils::valArray($characteristics, ['scalar', null]);
 	}
 
 	function containsKey(string $key): bool {
