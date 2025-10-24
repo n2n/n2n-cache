@@ -137,7 +137,7 @@ class DboCacheStore implements CacheStore {
 			return null;
 		}
 
-		return new CacheItem($result[DboCacheEngine::NAME_COLUMN], CharacteristicsList::fromArg($result[DboCacheEngine::CHARACTERISTICS_COLUMN]),
+		return new CacheItem($result[DboCacheEngine::NAME_COLUMN], $result[DboCacheEngine::CHARACTERISTICS_COLUMN],
 				$result[DboCacheEngine::DATA_COLUMN]);
 	}
 

@@ -30,7 +30,7 @@ class CacheItem {
 	 * @param CharacteristicsList $characteristicsList
 	 * @param mixed $data
 	 */
-	public function __construct(private string $name, private CharacteristicsList $characteristicsList, private mixed $data) {
+	public function __construct(private string $name, private CharacteristicsList $characteristicsList, public mixed $data) {
 	}
 
 	/**

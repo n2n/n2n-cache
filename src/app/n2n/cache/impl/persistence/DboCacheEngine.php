@@ -218,7 +218,7 @@ class DboCacheEngine {
 
 	private function unserializeResult(array $row): array {
 		try {
-			$row[self::CHARACTERISTICS_COLUMN] = ($this->igbinaryEnabled
+			$row[self::CHARACTERISTICS_COLUMN] = new CharacteristicsList($this->igbinaryEnabled
 					? BinaryUtils::igbinaryUnserialize($row[self::CHARACTERISTICS_COLUMN])
 					: StringUtils::unserialize($row[self::CHARACTERISTICS_COLUMN]));
 		} catch (UnserializationFailedException $e) {
@@ -228,7 +228,7 @@ class DboCacheEngine {
 
 		$dataStr = $row[self::DATA_COLUMN];
 		try {
-			$row[self::DATA_COLUMN] = new CharacteristicsList($this->igbinaryEnabled
+			$row[self::DATA_COLUMN] = ($this->igbinaryEnabled
 					? BinaryUtils::igbinaryUnserialize((string) $dataStr)
 					: StringUtils::unserialize((string) $dataStr));
 		} catch (UnserializationFailedException|\InvalidArgumentException $e) {
@@ -336,7 +336,7 @@ class DboCacheEngine {
 	 * @throws DboException
 	 */
 	function deleteBy(?string $nameNeedle, ?CharacteristicsList $characteristicNeedlesList): void {
-		$characteristicNeedles = $characteristicNeedlesList->toArray();
+		$characteristicNeedles = $characteristicNeedlesList?->toArray();
 		$characteristicsStr = $this->serializeCharacteristics($characteristicNeedles);
 		$characteristicNeedleStrs = $this->splitAndSerializeCharacteristics($characteristicNeedles);
 
