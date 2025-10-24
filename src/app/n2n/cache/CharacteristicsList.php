@@ -4,6 +4,7 @@ namespace n2n\cache;
 
 use n2n\util\type\ArgUtils;
 use n2n\util\StringUtils;
+use OutOfBoundsException;
 
 class CharacteristicsList {
 
@@ -13,6 +14,13 @@ class CharacteristicsList {
 
 	function containsKey(string $key): bool {
 		return array_key_exists($key, $this->characteristics);
+	}
+
+	function getValue(string $key): string|int|bool|null {
+		if (!$this->containsKey($key)) {
+			return $this->characteristics[$key];
+		}
+		throw new OutOfBoundsException('Characteristic with key "' . $key . '" does not exist.');
 	}
 
 	function toArray(): array {
