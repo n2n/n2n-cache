@@ -11,6 +11,10 @@ class CharacteristicsList {
 		ArgUtils::valArray($characteristics, 'scalar');
 	}
 
+	function containsKey(string $key): bool {
+		return array_key_exists($key, $this->characteristics);
+	}
+
 	function toArray(): array {
 		return $this->characteristics;
 	}
