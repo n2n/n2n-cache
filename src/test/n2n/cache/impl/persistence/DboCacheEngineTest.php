@@ -14,6 +14,7 @@ use n2n\spec\dbo\meta\structure\BinaryColumn;
 use n2n\spec\dbo\err\DboException;
 use n2n\spec\dbo\meta\structure\IntegerColumn;
 use n2n\cache\CharacteristicsList;
+use n2n\spec\tx\TransactionIsolationLevel;
 
 class DboCacheEngineTest extends TestCase {
 	private Pdo $pdo;
@@ -21,7 +22,7 @@ class DboCacheEngineTest extends TestCase {
 
 	function setUp(): void {
 		$config = new PersistenceUnitConfig('holeradio', 'sqlite::memory:', '', '',
-				PersistenceUnitConfig::TIL_SERIALIZABLE, SqliteDialect::class);
+				TransactionIsolationLevel::TIL_SERIALIZABLE, SqliteDialect::class);
 		$this->pdo = new Pdo('holeradio', new SqliteDialect($config));
 		$this->pdoUtil = new DbTestPdoUtil($this->pdo);
 	}

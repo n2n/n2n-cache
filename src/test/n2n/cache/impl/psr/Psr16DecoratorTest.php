@@ -7,13 +7,13 @@ use n2n\util\io\fs\FsPath;
 use n2n\cache\impl\fs\FileCacheStore;
 use n2n\cache\impl\PsrDecorators;
 use Psr\SimpleCache\InvalidArgumentException;
-use n2n\cache\CacheStore;
 use n2n\cache\impl\persistence\DboCacheStore;
 use n2n\core\config\PersistenceUnitConfig;
 use n2n\impl\persistence\meta\sqlite\SqliteDialect;
 use n2n\persistence\Pdo;
 use n2n\test\DbTestPdoUtil;
 use n2n\cache\impl\persistence\DboCacheDataSize;
+use n2n\spec\tx\TransactionIsolationLevel;
 
 class Psr16DecoratorTest extends TestCase {
 	private FsPath $tempDirFsPath;
@@ -30,7 +30,7 @@ class Psr16DecoratorTest extends TestCase {
 		$this->tempDirFsPath = new FsPath($tempfile);
 
 		$config = new PersistenceUnitConfig('holeradio', 'sqlite::memory:', '', '',
-				PersistenceUnitConfig::TIL_SERIALIZABLE, SqliteDialect::class);
+				TransactionIsolationLevel::TIL_SERIALIZABLE, SqliteDialect::class);
 		$this->pdo = new Pdo('holeradio', new SqliteDialect($config));
 		$this->pdoUtil = new DbTestPdoUtil($this->pdo);
 	}
@@ -90,7 +90,7 @@ class Psr16DecoratorTest extends TestCase {
 	 * @throws InvalidArgumentException
 	 */
 	function testClear() {
-		$store = PsrDecorators::psr16(new FileCacheStore($this->tempDirFsPath, 0777, 0777));
+		$store = PsrDecorators::psr16(new FileCacheStore($this->tempDirFsPath, '0777', '0777'));
 
 		$store->set('test.test', ['k1' => 'v1', 'k2' => 'v2']);
 		$store->set('test.test1', ['k1' => 'v1', 'k3' => 'v3']);
@@ -107,7 +107,7 @@ class Psr16DecoratorTest extends TestCase {
 	 * @throws InvalidArgumentException
 	 */
 	function testHas(): void {
-		$store = PsrDecorators::psr16(new FileCacheStore($this->tempDirFsPath, 0777, 0777));
+		$store = PsrDecorators::psr16(new FileCacheStore($this->tempDirFsPath, '0777', '0777'));
 		$store->set('test.test', ['k1' => 'v1', 'k2' => 'v2']);
 		$this->assertTrue($store->has('test.test'));
 	}
@@ -116,7 +116,7 @@ class Psr16DecoratorTest extends TestCase {
 	 * @throws InvalidArgumentException
 	 */
 	function testFileCacheHasNoTtlSupport(): void {
-		$store = PsrDecorators::psr16(new FileCacheStore($this->tempDirFsPath, 0777, 0777));
+		$store = PsrDecorators::psr16(new FileCacheStore($this->tempDirFsPath, '0777', '0777'));
 		$ttl = new \DateInterval('PT300S');
 		$ttlNeg = new \DateInterval('PT12H');
 		$ttlNeg->invert = true;

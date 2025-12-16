@@ -24,15 +24,21 @@ class FileCacheStorePoolTest extends TestCase {
 		$pool->lookupCacheStore('ns\\ns1')->store('name', CharacteristicsList::fromArg(['c1' => 'v1', 'c2' => 'v2']), 'huii');
 		$pool->lookupCacheStore('ns\\ns2')->store('name', CharacteristicsList::fromArg(['c1' => 'v1', 'c2' => 'v2']), 'huii');
 
+		$this->assertCount(2, $this->tempDirFsPath->getChildren());
 		$this->assertTrue($this->tempDirFsPath->ext('ns-ns1')->exists());
-		$this->assertCount(1, $this->tempDirFsPath->ext('ns-ns1')->getChildren());
+		$this->assertCount(2, $this->tempDirFsPath->ext('ns-ns1')->getChildren());
+		$this->assertTrue($this->tempDirFsPath->ext(['ns-ns1', 'data'])->exists());
+		$this->assertTrue($this->tempDirFsPath->ext(['ns-ns1', 'lock'])->exists());
+
 		$this->assertTrue($this->tempDirFsPath->ext('ns-ns2')->exists());
-		$this->assertCount(1, $this->tempDirFsPath->ext('ns-ns2')->getChildren());
+		$this->assertCount(2, $this->tempDirFsPath->ext('ns-ns2')->getChildren());
+		$this->assertTrue($this->tempDirFsPath->ext(['ns-ns2', 'data'])->exists());
+		$this->assertTrue($this->tempDirFsPath->ext(['ns-ns2', 'lock'])->exists());
 	}
 
 
 	function testClear() {
-		$pool = CacheStorePools::file($this->tempDirFsPath, 0777, 0777);
+		$pool = CacheStorePools::file($this->tempDirFsPath, 0777, '0777');
 
 		$pool->lookupCacheStore('ns\\ns1')->store('name', CharacteristicsList::fromArg(['c1' => 'v1', 'c2' => 'v2']), 'huii');
 		$pool->lookupCacheStore('ns\\ns2')->store('name', CharacteristicsList::fromArg(['c1' => 'v1', 'c2' => 'v2']), 'huii');

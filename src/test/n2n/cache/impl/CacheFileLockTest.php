@@ -9,6 +9,9 @@ use n2n\util\io\fs\FsPath;
 
 class CacheFileLockTest extends TestCase {
 
+	/**
+	 * @throws CouldNotAchieveFlockException
+	 */
 	function testCacheFileLock() {
 		$lockFileFsPath = new FsPath(tempnam(sys_get_temp_dir(),''));
 		$lockFileFsPath->delete();
@@ -35,6 +38,9 @@ class CacheFileLockTest extends TestCase {
 	}
 
 
+	/**
+	 * @throws CouldNotAchieveFlockException
+	 */
 	function testKeepFile() {
 		$lockFileFsPath = new FsPath(tempnam(sys_get_temp_dir(),''));
 		$lockFileFsPath->delete();

@@ -39,93 +39,83 @@ use n2n\concurrency\sync\LockMode;
 use n2n\concurrency\sync\Lock;
 use n2n\cache\CacheStoreOperationFailedException;
 use n2n\cache\CharacteristicsList;
+use n2n\util\io\fs\FsPerm;
 
 class FileCacheStore implements CacheStore {
 	const CHARACTERISTIC_DELIMITER = '.';
 	const CHARACTERISTIC_HASH_LENGTH = 4;
 	const CACHE_FILE_SUFFIX = '.cache';
 	const LOCK_FILE_SUFFIX = '.filelock';
+	const LOCK_FOLDER = 'lock';
+	const DATA_FOLDER = 'data';
 
-	private FsPath $dirPath;
-	private $dirPerm;
-	private $filePerm;
-	/**
-	 * @param mixed $dirPath
-	 * @param string $dirPerm
-	 * @param string $filePerm
-	 */
-	public function __construct($dirPath, $dirPerm = null, $filePerm = null) {
-		$this->dirPath = new FsPath($dirPath);
-		$this->dirPerm = $dirPerm;
-		$this->filePerm = $filePerm;
+	private FsPath $dirFsPath;
+	private ?FsPerm $dirPerm;
+	private ?FsPerm $filePerm;
+
+	public function __construct(mixed $dirPath, FsPerm|string|int|null $dirPerm = null, FsPerm|string|int|null $filePerm = null) {
+
+		$this->dirFsPath = new FsPath($dirPath);
+		$this->dirPerm = FsPerm::build($dirPerm);
+		$this->filePerm = FsPerm::build($filePerm);
 	}
-	/**
-	 * @return FsPath
-	 */
-	public function getDirPath() {
-		return $this->dirPath;
+
+	public function getDirFsPath(): FsPath {
+		return $this->dirFsPath;
 	}
-	/**
-	 * @param string $dirPerm
-	 */
-	public function setDirPerm($dirPerm) {
-		$this->dirPerm = $dirPerm;
+
+	public function setDirPerm(FsPerm|string|int|null $dirPerm): void {
+		$this->dirPerm = FsPerm::build($dirPerm);
 	}
-	/**
-	 * @return string
-	 */
-	public function getDirPerm() {
+
+	public function getDirPerm(): ?FsPerm {
 		return $this->dirPerm;
 	}
-	/**
-	 * @param string $filePerm
-	 */
-	public function setFilePerm($filePerm) {
-		$this->filePerm = $filePerm;
+
+	public function setFilePerm(FsPerm|string|int|null $filePerm): void {
+		$this->filePerm = FsPerm::build($filePerm);
 	}
-	/**
-	 * @return string
-	 */
-	public function getFilePerm() {
+
+	public function getFilePerm(): ?FsPerm {
 		return $this->filePerm;
 	}
 
-	private function buildReadLock(FsPath $filePath): Lock {
-		$lockFilePath = new FsPath($filePath . self::LOCK_FILE_SUFFIX);
-//		if (!$lockFilePath->exists()) {
-//			return null;
-//		}
-//
-//		return new CacheFileLock(new FileResourceStream($lockFilePath, 'w', LOCK_SH));
+	private function createLockFsPath(FsPath $fileFsPath): FsPath {
+		return $this->getLockDirFsPath()->ext(HashUtils::base36Sha256Hash((string) $fileFsPath) . FileCacheStore::LOCK_FILE_SUFFIX);
+	}
+
+	private function createReadLock(FsPath $fileFsPath): Lock {
+		$lockFilePath = $this->createLockFsPath($fileFsPath);
+		$this->mkLockDir();
 
 		$lock = Sync::byFileLock($lockFilePath);
 		ExUtils::try(fn () => $lock->acquire(LockMode::SHARED));
+		if ($this->filePerm !== null) {
+			ExUtils::try(fn () => $lockFilePath->chmod($this->filePerm));
+		}
 		return $lock;
 	}
-	/**
-	 * @param string $filePath
-	 * @return Lock
-	 */
-	private function createWriteLock(string $filePath): Lock {
-		$lockFilePath = new FsPath($filePath . self::LOCK_FILE_SUFFIX);
-//		$lock = new CacheFileLock(new FileResourceStream($lockFilePath, 'w', LOCK_EX));
+
+	private function createWriteLock(FsPath $fileFsPath): Lock {
+		$lockFilePath = $this->createLockFsPath($fileFsPath);
+		$this->mkLockDir();
+
 		$lock = Sync::byFileLock($lockFilePath);
 		ExUtils::try(fn () => $lock->acquire(LockMode::EXCLUSIVE));
 		if ($this->filePerm !== null) {
-			$lockFilePath->chmod($this->filePerm);
+			ExUtils::try(fn () => $lockFilePath->chmod($this->filePerm));
 		}
 		return $lock;
 	}
 
-	private function buildNameDirPath($name) {
+	private function createNameDirFsPath($name): FsPath {
 		if (IoUtils::hasSpecialChars($name)) {
 			$name = HashUtils::base36Md5Hash($name);
 		}
-
-		return $this->dirPath->ext($name);
+		return $this->getDataDirFsPath()->ext($name);
 	}
 
-	private function buildFileName(CharacteristicsList $characteristicsList): string {
+	private function createFileName(CharacteristicsList $characteristicsList): string {
 		$characteristics = $characteristicsList->toArray();
 		ksort($characteristics);
 
@@ -138,7 +128,7 @@ class FileCacheStore implements CacheStore {
 		return $fileName . self::CACHE_FILE_SUFFIX;
 	}
 
-	private function buildFileGlobPattern(array $characteristicNeedles): string {
+	private function createFileGlobPattern(array $characteristicNeedles): string {
 		ksort($characteristicNeedles);
 
 		$fileName = '';
@@ -149,34 +139,63 @@ class FileCacheStore implements CacheStore {
 
 		return $fileName . '*' . self::CACHE_FILE_SUFFIX;
 	}
+
+	private function mkdirsWithUmaskOverwrite(FsPath $fsPath): void {
+		if ($fsPath->isDir()) {
+			return;
+		}
+
+		ExUtils::try(fn () => $fsPath->mkdirs($this->dirPerm));
+		if ($this->dirPerm !== null) {
+			// chmod after mkdirs because of possible umask restrictions.
+			ExUtils::try(fn () => $fsPath->chmod($this->dirPerm));
+		}
+	}
+
+
+	private function getDataDirFsPath(): FsPath {
+		return $this->dirFsPath->ext([self::DATA_FOLDER]);
+	}
+
+	private function getLockDirFsPath(): FsPath {
+		return $this->dirFsPath->ext([self::LOCK_FOLDER]);
+	}
+
+	private function mkLockDir(): void {
+		$lockDirFsPath = $this->getLockDirFsPath();
+		if ($lockDirFsPath->isDir()) {
+			return;
+		}
+
+		$this->mkdirsWithUmaskOverwrite($this->dirFsPath);
+		$this->mkdirsWithUmaskOverwrite($this->getLockDirFsPath());
+	}
+
+	private function mkNameDir(FsPath $nameDirFsPath): void {
+		if ($nameDirFsPath->isDir()) {
+			return;
+		}
+
+		$this->mkdirsWithUmaskOverwrite($this->dirFsPath);
+		$this->mkdirsWithUmaskOverwrite($this->getDataDirFsPath());
+		$this->mkdirsWithUmaskOverwrite($nameDirFsPath);
+	}
+
+
 	/* (non-PHPdoc)
 	 * @see \n2n\cache\CacheStore::store()
 	 */
 	public function store(string $name, CharacteristicsList $characteristicsList, mixed $data, ?\DateInterval $ttl = null,
 			?\DateTimeInterface $now = null): void {
-		$nameDirPath = $this->buildNameDirPath($name);
-		if (!$nameDirPath->isDir()) {
-			$parentDirPath = $nameDirPath->getParent();
-			if (!$parentDirPath->isDir()) {
-				$parentDirPath->mkdirs($this->dirPerm);
-				if ($this->dirPerm !== null) {
-					// chmod after mkdirs because of possible umask restrictions.
-					$parentDirPath->chmod($this->dirPerm);
-				}
-			}
 
-			$nameDirPath->mkdirs($this->dirPerm);
-			if ($this->dirPerm !== null) {
-				// chmod after mkdirs because of possible umask restrictions.
-				$nameDirPath->chmod($this->dirPerm);
-			}
-		}
+		$nameDirPath = $this->createNameDirFsPath($name);
+		$this->mkNameDir($nameDirPath);
 
-		$filePath = $nameDirPath->ext($this->buildFileName($characteristicsList));
+		$fileFsPath = $nameDirPath->ext($this->createFileName($characteristicsList));
 
-		$lock = $this->createWriteLock((string) $filePath);
+		$lock = $this->createWriteLock($fileFsPath);
 		try {
-			IoUtils::putContentsSafe($filePath->__toString(), serialize(array(
+			IoUtils::putContentsSafe($fileFsPath->__toString(), serialize(array(
 					'characteristics' => $characteristicsList->toArray(),
 					'data' => $data)));
 		} catch (IoException $e) {
@@ -185,7 +204,7 @@ class FileCacheStore implements CacheStore {
 
 		if ($this->filePerm !== null) {
 			// file cloud be removed by {@link self::clear()} in the meantime despite the active lock.
-			$filePath->chmod($this->filePerm, true);
+			ExUtils::try(fn () => $fileFsPath->chmod($this->filePerm, true));
 		}
 		$lock->release();
 	}
@@ -198,18 +217,13 @@ class FileCacheStore implements CacheStore {
 	private function read($name, FsPath $filePath): ?CacheItem {
 		if (!$filePath->exists()) return null;
 
-		$lock = $this->buildReadLock($filePath);
-//		if ($lock === null) {
-//			$filePath->delete();
-//			return null;
-//		}
+		$lock = $this->createReadLock($filePath);
 
 		if (!$filePath->exists()) {
-			$lock->release(true);
+			$lock->release();
 			return null;
 		}
 
-		$contents = null;
 		try {
 			$contents = IoUtils::getContentsSafe($filePath);
 		} catch (IoException $e) {
@@ -248,18 +262,18 @@ class FileCacheStore implements CacheStore {
 	 * @see \n2n\cache\CacheStore::get()
 	 */
 	public function get(string $name, CharacteristicsList $characteristicsList, ?\DateTimeInterface $now = null): ?CacheItem {
-		$nameDirPath = $this->buildNameDirPath($name);
+		$nameDirPath = $this->createNameDirFsPath($name);
 		if (!$nameDirPath->exists()) return null;
-		return $this->read($name, $nameDirPath->ext($this->buildFileName($characteristicsList)));
+		return $this->read($name, $nameDirPath->ext($this->createFileName($characteristicsList)));
 	}
 	/* (non-PHPdoc)
 	 * @see \n2n\cache\CacheStore::remove()
 	 */
 	public function remove(string $name, CharacteristicsList $characteristicsList): void {
-		$nameDirPath = $this->buildNameDirPath($name);
+		$nameDirPath = $this->createNameDirFsPath($name);
 		if (!$nameDirPath->exists()) return;
 
-		$filePath = $nameDirPath->ext($this->buildFileName($characteristicsList));
+		$filePath = $nameDirPath->ext($this->createFileName($characteristicsList));
 		$this->unlink($filePath);
 	}
 
@@ -273,7 +287,8 @@ class FileCacheStore implements CacheStore {
 			IoUtils::unlink($filePath->__toString());
 		} catch (FileOperationException $e) {
 			if ($filePath->exists()) {
-				throw $e;
+				throw new IllegalStateException(self::class . ' was unable to delete data file: ' . $filePath,
+						previous: $e);
 			}
 		}
 
@@ -294,7 +309,7 @@ class FileCacheStore implements CacheStore {
 
 	/**
 	 * @param CharacteristicsList $characteristicNeedles
-	 * @param array $characteristics
+	 * @param CharacteristicsList $characteristics
 	 * @return boolean
 	 */
 	private function inCharacteristics(CharacteristicsList $characteristicNeedles, CharacteristicsList $characteristics): bool {
@@ -307,13 +322,13 @@ class FileCacheStore implements CacheStore {
 	 * @return FsPath[]
 	 */
 	private function findFilePaths(?string $name, ?array $characteristicNeedles = null): array {
-		$fileGlobPattern = $this->buildFileGlobPattern((array) $characteristicNeedles);
+		$fileGlobPattern = $this->createFileGlobPattern((array) $characteristicNeedles);
 
 		if ($name === null) {
-			return $this->dirPath->getChildren('*' . DIRECTORY_SEPARATOR . $fileGlobPattern);
+			return $this->getDataDirFsPath()->getChildren('*' . DIRECTORY_SEPARATOR . $fileGlobPattern);
 		}
 
-		$nameDirPath = $this->buildNameDirPath($name);
+		$nameDirPath = $this->createNameDirFsPath($name);
 		if (!$nameDirPath->exists()) {
 			return [];
 		}
@@ -350,7 +365,8 @@ class FileCacheStore implements CacheStore {
 	 * @see \n2n\cache\CacheStore::clear()
 	 */
 	public function clear(): void {
-		foreach ($this->dirPath->getChildDirectories() as $nameDirPath) {
+		$dataDirFsPath = $this->getDataDirFsPath();
+		foreach ($dataDirFsPath->getChildDirectories() as $nameDirPath) {
 			$this->removeAll($nameDirPath->getName());
 		}
 	}

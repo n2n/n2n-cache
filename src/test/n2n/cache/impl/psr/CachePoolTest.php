@@ -24,12 +24,14 @@ use n2n\cache\impl\persistence\DboCacheStore;
 use n2n\cache\impl\persistence\DboCacheDataSize;
 use n2n\cache\impl\PsrDecorators;
 use Psr\Cache\InvalidArgumentException;
+use n2n\spec\dbo\err\DboException;
+use n2n\spec\tx\TransactionIsolationLevel;
 
 class CachePoolTest extends TestCase {
 	/**
 	 * @type array with functionName => reason.
 	 */
-	protected $skippedTests = [];
+	protected array $skippedTests = [];
 
 	protected ?CacheItemPoolInterface $cache = null;
 	private Pdo $pdo;
@@ -37,7 +39,7 @@ class CachePoolTest extends TestCase {
 
 	function setUp(): void {
 		$config = new PersistenceUnitConfig('holeradio', 'sqlite::memory:', '', '',
-				PersistenceUnitConfig::TIL_SERIALIZABLE, SqliteDialect::class);
+				TransactionIsolationLevel::TIL_SERIALIZABLE, SqliteDialect::class);
 		$this->pdo = new Pdo('data', new SqliteDialect($config));
 		$this->pdoUtil = new DbTestPdoUtil($this->pdo);
 		$this->cache = $this->createCachePool();
@@ -94,6 +96,9 @@ class CachePoolTest extends TestCase {
 		];
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testBasicUsage() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -126,6 +131,9 @@ class CachePoolTest extends TestCase {
 		$this->assertFalse($this->cache->getItem('key2')->isHit());
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testBasicUsageWithLongKey() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -153,6 +161,9 @@ class CachePoolTest extends TestCase {
 		$this->assertFalse($item->isHit());
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testItemModifiersReturnsStatic() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -164,6 +175,9 @@ class CachePoolTest extends TestCase {
 		$this->assertSame($item, $item->expiresAt(new \DateTime('+2hours')));
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testGetItem() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -184,6 +198,9 @@ class CachePoolTest extends TestCase {
 		$this->assertNull($item->get(), "Item's value must be null when isHit is false.");
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testGetItems() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -227,6 +244,9 @@ class CachePoolTest extends TestCase {
 		$this->assertSame(4, $count);
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testGetItemsEmpty() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -246,6 +266,9 @@ class CachePoolTest extends TestCase {
 		$this->assertSame(0, $count);
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testHasItem() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -262,6 +285,9 @@ class CachePoolTest extends TestCase {
 		$this->assertFalse($this->cache->hasItem('key2'));
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testClear() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -278,6 +304,9 @@ class CachePoolTest extends TestCase {
 		$this->assertFalse($this->cache->hasItem('key2'), 'The cache pool should be empty after it is cleared.');
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testClearWithDeferredItems() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -293,6 +322,9 @@ class CachePoolTest extends TestCase {
 		$this->assertFalse($this->cache->getItem('key')->isHit(), 'Deferred items must be cleared on clear(). ');
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testDeleteItem() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -309,6 +341,9 @@ class CachePoolTest extends TestCase {
 		$this->assertTrue($this->cache->deleteItem('key2'), 'Deleting an item that does not exist should return true.');
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testDeleteItems() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -337,6 +372,9 @@ class CachePoolTest extends TestCase {
 		$this->assertFalse($this->cache->getItem('biz')->isHit());
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testSave() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -350,6 +388,9 @@ class CachePoolTest extends TestCase {
 		$this->assertEquals('value', $this->cache->getItem('key')->get());
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testSaveExpired() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -365,6 +406,9 @@ class CachePoolTest extends TestCase {
 		$this->assertFalse($item->isHit(), 'Cache should not save expired items');
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testSaveWithoutExpire() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -382,6 +426,10 @@ class CachePoolTest extends TestCase {
 		$this->assertEquals('data', $item->get());
 	}
 
+	/**
+	 * @throws DboException
+	 * @throws InvalidArgumentException
+	 */
 	public function testDeferredSave() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -410,6 +458,9 @@ class CachePoolTest extends TestCase {
 		$this->assertTrue($this->cache->getItem('key2')->isHit());
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testDeferredExpired() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -448,6 +499,10 @@ class CachePoolTest extends TestCase {
 		$this->assertFalse($this->cache->getItem('key')->isHit(), 'A deleted item should not reappear after commit. ');
 	}
 
+	/**
+	 * @throws DboException
+	 * @throws InvalidArgumentException
+	 */
 	public function testDeferredSaveWithoutCommit() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -460,6 +515,9 @@ class CachePoolTest extends TestCase {
 		$this->assertTrue($cache->getItem('key')->isHit(), 'A deferred item should automatically be committed on CachePool::__destruct().');
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	private function prepareDeferredSaveWithoutCommit(): void {
 		$cache = $this->cache;
 		$this->cache = null;
@@ -473,6 +531,9 @@ class CachePoolTest extends TestCase {
 //		debug_zval_dump($cache);
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testCommit() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -492,6 +553,7 @@ class CachePoolTest extends TestCase {
 
 	/**
 	 * @medium
+	 * @throws InvalidArgumentException
 	 */
 	public function testExpiration() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
@@ -509,6 +571,9 @@ class CachePoolTest extends TestCase {
 		$this->assertNull($item->get(), "Item's value must be null when isHit() is false.");
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testExpiresAt() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -523,6 +588,9 @@ class CachePoolTest extends TestCase {
 		$this->assertTrue($item->isHit());
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testExpiresAtWithNull() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -537,6 +605,9 @@ class CachePoolTest extends TestCase {
 		$this->assertTrue($item->isHit());
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testExpiresAfterWithNull() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -551,6 +622,9 @@ class CachePoolTest extends TestCase {
 		$this->assertTrue($item->isHit());
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testKeyLength() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -566,6 +640,7 @@ class CachePoolTest extends TestCase {
 
 	/**
 	 * @dataProvider invalidKeys
+	 * @throws InvalidArgumentException
 	 */
 	public function testGetItemInvalidKeys($key) {
 		if (isset($this->skippedTests[__FUNCTION__])) {
@@ -592,6 +667,7 @@ class CachePoolTest extends TestCase {
 
 	/**
 	 * @dataProvider invalidKeys
+	 * @throws InvalidArgumentException
 	 */
 	public function testHasItemInvalidKeys($key) {
 		if (isset($this->skippedTests[__FUNCTION__])) {
@@ -605,6 +681,7 @@ class CachePoolTest extends TestCase {
 
 	/**
 	 * @dataProvider invalidKeys
+	 * @throws InvalidArgumentException
 	 */
 	public function testDeleteItemInvalidKeys($key) {
 		if (isset($this->skippedTests[__FUNCTION__])) {
@@ -628,6 +705,9 @@ class CachePoolTest extends TestCase {
 		$this->cache->deleteItems(['key1', $key, 'key2']);
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testDataTypeString() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -642,6 +722,9 @@ class CachePoolTest extends TestCase {
 		$this->assertTrue('5' === $item->get(), 'Wrong data type. If we store a string we must get an string back.');
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testDataTypeInteger() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -656,6 +739,9 @@ class CachePoolTest extends TestCase {
 		$this->assertTrue(5 === $item->get(), 'Wrong data type. If we store an int we must get an int back.');
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testDataTypeNull() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -672,6 +758,9 @@ class CachePoolTest extends TestCase {
 		$this->assertTrue($item->isHit(), 'isHit() should return true when null are stored. ');
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testDataTypeFloat() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -688,6 +777,9 @@ class CachePoolTest extends TestCase {
 		$this->assertTrue($item->isHit(), 'isHit() should return true when float are stored. ');
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testDataTypeBoolean() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -703,6 +795,9 @@ class CachePoolTest extends TestCase {
 		$this->assertTrue($item->isHit(), 'isHit() should return true when true are stored. ');
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testDataTypeArray() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -719,6 +814,9 @@ class CachePoolTest extends TestCase {
 		$this->assertTrue($item->isHit(), 'isHit() should return true when array are stored. ');
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testDataTypeObject() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -736,6 +834,9 @@ class CachePoolTest extends TestCase {
 		$this->assertTrue($item->isHit(), 'isHit() should return true when object are stored. ');
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testBinaryData() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -754,6 +855,9 @@ class CachePoolTest extends TestCase {
 		$this->assertTrue($data === $item->get(), 'Binary data must survive a round trip.');
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testIsHit() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -767,6 +871,9 @@ class CachePoolTest extends TestCase {
 		$this->assertTrue($item->isHit());
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testIsHitDeferred() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -785,6 +892,9 @@ class CachePoolTest extends TestCase {
 		$this->assertTrue($item->isHit());
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testSaveDeferredWhenChangingValues() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -805,6 +915,9 @@ class CachePoolTest extends TestCase {
 		$this->assertEquals('value', $item->get(), 'Items that is put in the deferred queue should not get their values changed');
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testSaveDeferredOverwrite() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -826,6 +939,9 @@ class CachePoolTest extends TestCase {
 		$this->assertEquals('new value', $item->get());
 	}
 
+	/**
+	 * @throws InvalidArgumentException
+	 */
 	public function testSavingObject() {
 		if (isset($this->skippedTests[__FUNCTION__])) {
 			$this->markTestSkipped($this->skippedTests[__FUNCTION__]);
@@ -842,6 +958,7 @@ class CachePoolTest extends TestCase {
 
 	/**
 	 * @medium
+	 * @throws InvalidArgumentException
 	 */
 	public function testHasItemReturnsFalseWhenDeferredItemIsExpired() {
 		if (isset($this->skippedTests[__FUNCTION__])) {

@@ -8,6 +8,7 @@ use n2n\util\io\fs\FsPath;
 use n2n\cache\impl\fs\FileCacheStorePool;
 use n2n\cache\impl\ephemeral\EphemeralCacheStorePool;
 use n2n\cache\impl\ephemeral\NullCacheStorePool;
+use n2n\util\io\fs\FsPerm;
 
 class CacheStorePools {
 
@@ -17,7 +18,8 @@ class CacheStorePools {
 		return $pool;
 	}
 
-	static function file(FsPath $dirPath, string|int|null $dirPerm = null, string|int|null $filePerm = null): FileCacheStorePool {
+	static function file(FsPath $dirPath, FsPerm|string|int|null $dirPerm = null,
+			FsPerm|string|int|null $filePerm = null): FileCacheStorePool {
 		return new FileCacheStorePool($dirPath, $dirPerm, $filePerm);
 	}
 

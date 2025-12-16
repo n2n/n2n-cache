@@ -13,6 +13,7 @@ use n2n\core\config\PersistenceUnitConfig;
 use n2n\impl\persistence\meta\sqlite\SqliteDialect;
 use n2n\persistence\Pdo;
 use n2n\test\DbTestPdoUtil;
+use n2n\spec\tx\TransactionIsolationLevel;
 
 class Psr6DecoratorTest extends TestCase {
 
@@ -30,7 +31,7 @@ class Psr6DecoratorTest extends TestCase {
 		$this->tempDirFsPath = new FsPath($tempfile);
 
 		$config = new PersistenceUnitConfig('holeradio', 'sqlite::memory:', '', '',
-				PersistenceUnitConfig::TIL_SERIALIZABLE, SqliteDialect::class);
+				TransactionIsolationLevel::TIL_SERIALIZABLE, SqliteDialect::class);
 		$this->pdo = new Pdo('holeradio', new SqliteDialect($config));
 		$this->pdoUtil = new DbTestPdoUtil($this->pdo);
 	}

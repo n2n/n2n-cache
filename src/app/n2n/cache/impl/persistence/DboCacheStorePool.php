@@ -3,13 +3,10 @@
 namespace n2n\cache\impl\persistence;
 
 use n2n\util\StringUtils;
-use n2n\util\ex\ExUtils;
 use n2n\spec\dbo\Dbo;
 use n2n\cache\CacheStore;
-use n2n\util\type\TypeUtils;
 use n2n\cache\CacheStorePool;
 use WeakReference;
-use ArrayObject;
 use n2n\util\HashUtils;
 
 class DboCacheStorePool implements CacheStorePool {
@@ -68,6 +65,7 @@ class DboCacheStorePool implements CacheStorePool {
 
 		if (isset($this->weakCacheStores[$tableName])
 				&& null !== ($cacheStore = $this->weakCacheStores[$tableName]?->get())) {
+			/** @var CacheStore $cacheStore */
 			return $cacheStore;
 		}
 		$cacheStore = new DboCacheStore($this->dbo);
@@ -76,7 +74,7 @@ class DboCacheStorePool implements CacheStorePool {
 				. self::TABLE_CHARACTERISTICS_SUFFIX);
 		$cacheStore->setDboCacheDataSize($this->dboCacheDataSize);
 		$cacheStore->setIgbinaryEnabled($this->igbinaryEnabled);
-		$this->weakCacheStores[$tableName] = \WeakReference::create($cacheStore);
+		$this->weakCacheStores[$tableName] = WeakReference::create($cacheStore);
 		return $cacheStore;
 	}
 

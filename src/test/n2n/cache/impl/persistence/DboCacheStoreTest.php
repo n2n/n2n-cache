@@ -7,8 +7,9 @@ use n2n\persistence\Pdo;
 use n2n\impl\persistence\meta\sqlite\SqliteDialect;
 use n2n\core\config\PersistenceUnitConfig;
 use n2n\test\DbTestPdoUtil;
-use n2n\persistence\orm\attribute\DateTime;
 use n2n\cache\CharacteristicsList;
+use n2n\spec\dbo\err\DboException;
+use n2n\spec\tx\TransactionIsolationLevel;
 
 class DboCacheStoreTest extends TestCase {
 	private Pdo $pdo;
@@ -16,11 +17,14 @@ class DboCacheStoreTest extends TestCase {
 
 	function setUp(): void {
 		$config = new PersistenceUnitConfig('holeradio', 'sqlite::memory:', '', '',
-				PersistenceUnitConfig::TIL_SERIALIZABLE, SqliteDialect::class);
+				TransactionIsolationLevel::TIL_SERIALIZABLE, SqliteDialect::class);
 		$this->pdo = new Pdo('holeradio', new SqliteDialect($config));
 		$this->pdoUtil = new DbTestPdoUtil($this->pdo);
 	}
 
+	/**
+	 * @throws DboException
+	 */
 	function testWrite(): void {
 		$store = (new DboCacheStore($this->pdo))->setDboCacheDataSize(DboCacheDataSize::STRING);
 
@@ -69,6 +73,9 @@ class DboCacheStoreTest extends TestCase {
 		$this->assertEquals('data2', $store->findAll('holeradio', CharacteristicsList::fromArg(['key' => 'value2']))[0]->getData());
 	}
 
+	/**
+	 * @throws DboException
+	 */
 	function testRemove(): void {
 		$store = (new DboCacheStore($this->pdo))->setDboCacheDataSize(DboCacheDataSize::STRING);
 
@@ -87,6 +94,9 @@ class DboCacheStoreTest extends TestCase {
 		$this->assertCount(0, $this->pdoUtil->select('cached_data', null));
 	}
 
+	/**
+	 * @throws DboException
+	 */
 	function testRemoveAll(): void {
 		$store = (new DboCacheStore($this->pdo))->setDboCacheDataSize(DboCacheDataSize::STRING);
 
@@ -105,6 +115,9 @@ class DboCacheStoreTest extends TestCase {
 		$this->assertCount(0, $this->pdoUtil->select('cached_data', null));
 	}
 
+	/**
+	 * @throws DboException
+	 */
 	function testClear(): void {
 		$store = (new DboCacheStore($this->pdo))->setDboCacheDataSize(DboCacheDataSize::STRING);
 
@@ -124,6 +137,10 @@ class DboCacheStoreTest extends TestCase {
 	}
 
 
+	/**
+	 * @throws \DateInvalidOperationException
+	 * @throws DboException
+	 */
 	function testGarbageCollectTableCreation(): void {
 		$store = (new DboCacheStore($this->pdo))->setDboCacheDataSize(DboCacheDataSize::STRING);
 
@@ -136,6 +153,10 @@ class DboCacheStoreTest extends TestCase {
 		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
 	}
 
+	/**
+	 * @throws \DateInvalidOperationException
+	 * @throws DboException
+	 */
 	function testGarbageCollect() {
 		$store = (new DboCacheStore($this->pdo))->setDboCacheDataSize(DboCacheDataSize::STRING);
 

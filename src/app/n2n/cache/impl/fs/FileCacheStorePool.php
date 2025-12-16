@@ -7,10 +7,12 @@ use n2n\cache\CacheStore;
 use n2n\util\type\TypeUtils;
 use n2n\cache\CacheStorePool;
 use n2n\util\ex\ExUtils;
+use n2n\util\io\fs\FsPerm;
 
-class FileCacheStorePool implements CacheStorePool{
+class FileCacheStorePool implements CacheStorePool {
 
-	function __construct(private FsPath $dirFsPath, private string|int|null $dirPerm = null, private string|int|null $filePerm = null) {
+	function __construct(private FsPath $dirFsPath, private FsPerm|string|int|null $dirPerm = null,
+			private FsPerm|string|int|null $filePerm = null) {
 
 	}
 

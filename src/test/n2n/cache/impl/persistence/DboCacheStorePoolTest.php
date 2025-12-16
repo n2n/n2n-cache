@@ -7,10 +7,11 @@ use n2n\persistence\Pdo;
 use n2n\impl\persistence\meta\sqlite\SqliteDialect;
 use n2n\core\config\PersistenceUnitConfig;
 use n2n\test\DbTestPdoUtil;
-use n2n\persistence\orm\attribute\DateTime;
 use n2n\cache\impl\CacheStorePools;
 use n2n\util\HashUtils;
 use n2n\cache\CharacteristicsList;
+use n2n\spec\dbo\err\DboException;
+use n2n\spec\tx\TransactionIsolationLevel;
 
 class DboCacheStorePoolTest extends TestCase {
 	private Pdo $pdo;
@@ -18,11 +19,14 @@ class DboCacheStorePoolTest extends TestCase {
 
 	function setUp(): void {
 		$config = new PersistenceUnitConfig('holeradio', 'sqlite::memory:', '', '',
-				PersistenceUnitConfig::TIL_SERIALIZABLE, SqliteDialect::class);
+				TransactionIsolationLevel::TIL_SERIALIZABLE, SqliteDialect::class);
 		$this->pdo = new Pdo('holeradio', new SqliteDialect($config));
 		$this->pdoUtil = new DbTestPdoUtil($this->pdo);
 	}
 
+	/**
+	 * @throws DboException
+	 */
 	function testLookup(): void {
 		$pool = CacheStorePools::dbo($this->pdo, 'holeradio_');
 		$pool->setDboCacheDataSize(DboCacheDataSize::STRING);

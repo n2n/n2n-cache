@@ -7,6 +7,7 @@ use n2n\spec\dbo\err\DboException;
 use n2n\cache\CacheStoreOperationFailedException;
 use n2n\spec\dbo\Dbo;
 use n2n\cache\CharacteristicsList;
+use n2n\util\ex\ExUtils;
 
 class DboCacheStore implements CacheStore {
 	private string $dataTableName = 'cached_data';
@@ -180,7 +181,7 @@ class DboCacheStore implements CacheStore {
 			return;
 		}
 
-		$createdBy = $now->sub($maxLifetime);
+		$createdBy = ExUtils::try(fn () => $now->sub($maxLifetime));
 		$this->tableCheckedCall(/** @throws DboException */ function() use (&$createdBy) {
 			$this->pdoCacheEngine->deleteCreatedByTime($createdBy->getTimestamp());
 		});
