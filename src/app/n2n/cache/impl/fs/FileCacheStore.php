@@ -340,7 +340,7 @@ class FileCacheStore implements CacheStore {
 	public function findAll(string $name, ?CharacteristicsList $characteristicNeedlesList = null, ?\DateTimeInterface $now = null): array {
 		$cacheItems = array();
 
-		foreach ($this->findFilePaths($name, $characteristicNeedlesList->toArray()) as $filePath) {
+		foreach ($this->findFilePaths($name, $characteristicNeedlesList?->toArray()) as $filePath) {
 			$cacheItem = $this->read($name, $filePath);
 			if ($cacheItem === null) continue;
 

@@ -66,9 +66,15 @@ class FileCacheStoreTest extends TestCase {
 		$foundItems = $store->findAll('test.test', CharacteristicsList::fromArg(['k1' => 'v1']));
 
 		$this->assertCount(2, $foundItems);
-
 		$this->assertEquals('dato2', $foundItems[0]->getData());
 		$this->assertEquals('dato1', $foundItems[1]->getData());
+
+		$foundItems = $store->findAll('test.test');
+
+		$this->assertCount(3, $foundItems);
+		$this->assertEquals('dato3', $foundItems[0]->getData());
+		$this->assertEquals('dato2', $foundItems[1]->getData());
+		$this->assertEquals('dato1', $foundItems[2]->getData());
 
 
 		$store->removeAll('test.test', CharacteristicsList::fromArg(['k1' => 'v1']));
