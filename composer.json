@@ -26,7 +26,7 @@
 		"php": ">=8.4",
 		"n2n/n2n-util": "~7.5.0",
 		"n2n/n2n-concurrency": "~7.5.0",
-        "n2n/n2n-spec-dbo": "~1.0",
+        "n2n/n2n-spec-dbo": "~2.0",
 		"psr/simple-cache": "^3.0",
 		"psr/cache": "^3.0"
     },
