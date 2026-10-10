@@ -84,11 +84,21 @@ class DboCacheStore implements CacheStore {
 		try {
 			return $closure();
 		} catch (DboException $e) {
-			if (!$this->tableAutoCreated || !$this->checkTables()) {
+			// if DboException occures it is assumed that the tables are missing except it is marked as deadlock
+			if (!$this->tableAutoCreated || $e->isDeadlock()) {
 				throw new CacheStoreOperationFailedException($e->getMessage(), previous: $e);
 			}
 
-			return $closure();
+			try {
+				// where a the tables already exist (return value of checkTables() or not can not at this can not be
+				// used to determine if the thrown DboExcpetion was caused by missing tables or not since an other
+				// thread could have created these tables in the mean time. So there will be made another attempt
+				// to execute the closure.
+				$this->checkTables();
+				return $closure();
+			} catch (DboException $e) {
+				throw new CacheStoreOperationFailedException($e->getMessage(), previous: $e);
+			}
 		}
 	}
 
