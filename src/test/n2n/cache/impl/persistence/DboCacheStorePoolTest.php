@@ -38,12 +38,12 @@ class DboCacheStorePoolTest extends TestCase {
 		$pool->lookupCacheStore('ns\\ns2')->store('name', CharacteristicsList::fromArg(['c1' => 'v1', 'c2' => 'v2']), 'huii');
 
 		$ns1TableName = HashUtils::base36Md5Hash('ns\\ns1');
-		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('holeradio_' . $ns1TableName . '_data'));
-		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('holeradio_' . $ns1TableName. '_characteristic'));
+		$this->assertTrue($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('holeradio_' . $ns1TableName . '_data'));
+		$this->assertTrue($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('holeradio_' . $ns1TableName. '_characteristic'));
 
 		$ns2TableName = HashUtils::base36Md5Hash('ns\\ns2');
-		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('holeradio_' . $ns2TableName . '_data'));
-		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('holeradio_' . $ns2TableName . '_characteristic'));
+		$this->assertTrue($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('holeradio_' . $ns2TableName . '_data'));
+		$this->assertTrue($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('holeradio_' . $ns2TableName . '_characteristic'));
 
 		$this->assertCount(1, $this->pdoUtil->select('holeradio_' . $ns1TableName . '_data', null));
 		$this->assertCount(2, $this->pdoUtil->select('holeradio_' . $ns1TableName . '_characteristic', null));
@@ -58,7 +58,7 @@ class DboCacheStorePoolTest extends TestCase {
 		$pool->lookupCacheStore('ns\\ns1')->store('name', CharacteristicsList::fromArg(['c1' => 'v1', 'c2' => 'v2']), 'huii');
 		$pool->lookupCacheStore('ns\\ns2')->store('name', CharacteristicsList::fromArg(['c1' => 'v1', 'c2' => 'v2']), 'huii');
 
-		$this->assertCount(4, $this->pdo->getMetaData()->getDatabase()->getMetaEntities());
+		$this->assertCount(4, $this->pdo->createMetaManager()->createDatabase()->getMetaEntities());
 
 		$pool->clear();
 

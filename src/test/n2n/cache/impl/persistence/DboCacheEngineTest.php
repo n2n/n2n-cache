@@ -31,21 +31,33 @@ class DboCacheEngineTest extends TestCase {
 		return new DboCacheEngine($this->pdo, 'data', 'characteristic', $pdoCacheDataSize, $igbinaryEnabled);
 	}
 
+	private function createTables(): void {
+		$metaManager = $this->pdo->createMetaManager();
+		$database = $metaManager->createDatabase();
+		$this->createEngine()->createDataTable($database);
+		$this->createEngine()->createCharacteristicTable($database);
+		$metaManager->flush();
+	}
+
 	/**
 	 * @throws DboException
 	 */
 	function testCreateDataTable(): void {
-		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('data'));
-		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('characteristic'));
+		$metaManager = $this->pdo->createMetaManager();
+		$database = $metaManager->createDatabase();
+
+		$this->assertFalse($database->containsMetaEntityName('data'));
+		$this->assertFalse($database->containsMetaEntityName('characteristic'));
 
 		$engine = $this->createEngine();
-		$this->assertFalse($engine->doesDataTableExist());
-		$engine->createDataTable();
-		$this->assertTrue($engine->doesDataTableExist());
+		$this->assertFalse($engine->doesDataTableExist($database));
+		$engine->createDataTable($database);
+		$this->assertTrue($engine->doesDataTableExist($database));
 
-		$database = $this->pdo->getMetaData()->getDatabase();
 		$this->assertTrue($database->containsMetaEntityName('data'));
 		$this->assertFalse($database->containsMetaEntityName('characteristic'));
+
+		$metaManager->flush();
 
 		$table = $database->getMetaEntityByName('data');
 		assert($table instanceof Table);
@@ -74,17 +86,21 @@ class DboCacheEngineTest extends TestCase {
 	 * @throws DboException
 	 */
 	function testCreateCharacteristicTable(): void {
-		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('data'));
-		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('characteristic'));
+		$metaManager = $this->pdo->createMetaManager();
+		$database = $metaManager->createDatabase();
+
+		$this->assertFalse($database->containsMetaEntityName('data'));
+		$this->assertFalse($database->containsMetaEntityName('characteristic'));
 
 		$engine = $this->createEngine();
-		$this->assertFalse($engine->doesCharacteristicTableExist());
-		$engine->createCharacteristicTable();
-		$this->assertTrue($engine->doesCharacteristicTableExist());
+		$this->assertFalse($engine->doesCharacteristicTableExist($database));
+		$engine->createCharacteristicTable($database);
+		$this->assertTrue($engine->doesCharacteristicTableExist($database));
 
-		$database = $this->pdo->getMetaData()->getDatabase();
 		$this->assertFalse($database->containsMetaEntityName('data'));
 		$this->assertTrue($database->containsMetaEntityName('characteristic'));
+
+		$metaManager->flush();
 
 		$table = $database->getMetaEntityByName('characteristic');
 		assert($table instanceof Table);
@@ -116,8 +132,7 @@ class DboCacheEngineTest extends TestCase {
 		$engine = $this->createEngine();
 		$time = time();
 
-		$engine->createDataTable();
-		$engine->createCharacteristicTable();
+		$this->createTables();
 
 		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value1']), 'data1', $time, null);
 		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value2']), 'data2', $time, null);
@@ -153,8 +168,7 @@ class DboCacheEngineTest extends TestCase {
 		$engine = $this->createEngine();
 		$time = time();
 
-		$engine->createDataTable();
-		$engine->createCharacteristicTable();
+		$this->createTables();
 
 		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value1']), 'data1', $time, null);
 		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value2']), 'data2', $time, null);
@@ -193,8 +207,7 @@ class DboCacheEngineTest extends TestCase {
 		$engine = $this->createEngine();
 		$time = time();
 
-		$engine->createDataTable();
-		$engine->createCharacteristicTable();
+		$this->createTables();
 
 		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value']), 'data1', $time, null);
 		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value2', 'o-key' => 'o-value', 'to-key' => 'to-value2']), 'data2', $time, null);
@@ -257,8 +270,7 @@ class DboCacheEngineTest extends TestCase {
 		$engine = $this->createEngine();
 		$time = time();
 
-		$engine->createDataTable();
-		$engine->createCharacteristicTable();
+		$this->createTables();
 
 		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value']), 'data1', $time, null);
 
@@ -286,8 +298,7 @@ class DboCacheEngineTest extends TestCase {
 		$engine = $this->createEngine();
 		$time = time();
 
-		$engine->createDataTable();
-		$engine->createCharacteristicTable();
+		$this->createTables();
 
 		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value0']), 'data0', $time, null);
 		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value']), 'data1', $time, null);
@@ -330,8 +341,7 @@ class DboCacheEngineTest extends TestCase {
 		$engine = $this->createEngine();
 		$time = time();
 
-		$engine->createDataTable();
-		$engine->createCharacteristicTable();
+		$this->createTables();
 
 		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value0']), 'data0', $time, null);
 		$engine->write('holeradio2', CharacteristicsList::fromArg(['key' => 'value0']), 'data0-2', $time, null);
@@ -369,8 +379,7 @@ class DboCacheEngineTest extends TestCase {
 		$engine = $this->createEngine();
 		$time = time();
 
-		$engine->createDataTable();
-		$engine->createCharacteristicTable();
+		$this->createTables();
 
 		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value0']), 'data0', $time, null);
 		$engine->write('holeradio2', CharacteristicsList::fromArg(['key' => 'value0']), 'data0-2', $time, null);
@@ -406,8 +415,7 @@ class DboCacheEngineTest extends TestCase {
 		$engine = $this->createEngine();
 		$time = time();
 
-		$engine->createDataTable();
-		$engine->createCharacteristicTable();
+		$this->createTables();
 
 		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value']), 'data0', $time, null);
 		$engine->write('holeradio2', CharacteristicsList::fromArg(['key' => 'value0-2']), 'data0-2', $time, null);
@@ -443,8 +451,7 @@ class DboCacheEngineTest extends TestCase {
 		$engine = $this->createEngine();
 		$time = time();
 
-		$engine->createDataTable();
-		$engine->createCharacteristicTable();
+		$this->createTables();
 
 		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value']), 'data0', $time, null);
 		$engine->write('holeradio2', CharacteristicsList::fromArg(['key' => 'value0-2']), 'data0-2', $time, null);
@@ -475,8 +482,7 @@ class DboCacheEngineTest extends TestCase {
 		$engine = $this->createEngine();
 		$time = time();
 
-		$engine->createDataTable();
-		$engine->createCharacteristicTable();
+		$this->createTables();
 
 		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value']), 'data0', $time, null);
 		$engine->write('holeradio2', CharacteristicsList::fromArg(['key' => 'value0-2']), 'data0-2', $time, null);
@@ -500,8 +506,7 @@ class DboCacheEngineTest extends TestCase {
 		$engine = $this->createEngine();
 		$time = time();
 
-		$engine->createDataTable();
-		$engine->createCharacteristicTable();
+		$this->createTables();
 
 		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value']), 'data0', $time, null);
 		$engine->write('holeradio2', CharacteristicsList::fromArg(['key' => 'value0-2']), 'data0-2', $time, null);
@@ -528,8 +533,7 @@ class DboCacheEngineTest extends TestCase {
 		$engine = $this->createEngine();
 		$time = time();
 
-		$engine->createDataTable();
-		$engine->createCharacteristicTable();
+		$this->createTables();
 
 		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value']), 'data0', $time, null);
 		$engine->write('holeradio2', CharacteristicsList::fromArg(['key' => 'value0-2']), 'data0-2', $time, null);
@@ -547,12 +551,14 @@ class DboCacheEngineTest extends TestCase {
 	}
 
 	function testCreateDataTableExceptionWhenExists(): void {
-		$engine = $this->createEngine();
+		$metaManager = $this->pdo->createMetaManager();
+		$database = $metaManager->createDatabase();
 
-		$engine->createDataTable();
+		$engine = $this->createEngine();
+		$engine->createDataTable($database);
 
 		$this->expectException(DuplicateMetaElementException::class);
-		$engine->createDataTable();
+		$engine->createDataTable($database);
 	}
 
 	/**
@@ -564,8 +570,7 @@ class DboCacheEngineTest extends TestCase {
 		$futureTime = $time + 1000;
 		$future2Time = $time + 2000;
 
-		$engine->createDataTable();
-		$engine->createCharacteristicTable();
+		$this->createTables();
 
 		$engine->write('holeradio-expired1', CharacteristicsList::fromArg(['key' => 'value-expired', 'o-key' => 'o-value-expired']), 'data-expired1', $time, $time);
 		$engine->write('holeradio-expired2', CharacteristicsList::fromArg(['key' => 'value-expired', 'o-key' => 'o-value-expired']), 'data-expired2', $time, $futureTime);
@@ -603,8 +608,7 @@ class DboCacheEngineTest extends TestCase {
 		$futureTime = $time + 1000;
 		$future2Time = $time + 2000;
 
-		$engine->createDataTable();
-		$engine->createCharacteristicTable();
+		$this->createTables();
 
 		$engine->write('holeradio-expired1', CharacteristicsList::fromArg(['key' => 'value-expired', 'o-key' => 'o-value-expired']), 'data-expired1', $time, $time);
 		$engine->write('holeradio-expired2', CharacteristicsList::fromArg(['key' => 'value-expired', 'o-key' => 'o-value-expired']), 'data-expired2', $time, $futureTime);
@@ -638,8 +642,7 @@ class DboCacheEngineTest extends TestCase {
 		$pastTime = $time - 1000;
 		$past2Time = $time - 2000;
 
-		$engine->createDataTable();
-		$engine->createCharacteristicTable();
+		$this->createTables();
 
 		$engine->write('holeradio1', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value']), 'data1', $time, null);
 		$engine->write('holeradio-expired1', CharacteristicsList::fromArg(['key' => 'value-expired', 'o-key' => 'o-value-expired']), 'data-expired1', $pastTime, null);
@@ -677,8 +680,7 @@ class DboCacheEngineTest extends TestCase {
 		$engine = $this->createEngine(igbinaryEnabled: true);
 		$time = time();
 
-		$engine->createDataTable();
-		$engine->createCharacteristicTable();
+		$this->createTables();
 
 		$engine->write('holeradio', CharacteristicsList::fromArg(['key' => 'value1', 'o-key' => 'o-value']), 'data1', $time, null);
 
@@ -736,8 +738,7 @@ class DboCacheEngineTest extends TestCase {
 	function testCachedSelectSql(): void {
 		$engine = $this->createEngine();
 
-		$engine->createDataTable();
-		$engine->createCharacteristicTable();
+		$this->createTables();
 
 		$time = time();
 
@@ -754,8 +755,7 @@ class DboCacheEngineTest extends TestCase {
 	function testCachedDeleteSql(): void {
 		$engine = $this->createEngine();
 
-		$engine->createDataTable();
-		$engine->createCharacteristicTable();
+		$this->createTables();
 
 		$time = time();
 		$future = $time + 10;

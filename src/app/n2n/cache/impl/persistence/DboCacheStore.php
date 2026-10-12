@@ -105,14 +105,21 @@ class DboCacheStore implements CacheStore {
 	private function checkTables(): bool {
 		$tablesCreated = false;
 
-		if (!$this->pdoCacheEngine->doesDataTableExist()) {
-			$this->pdoCacheEngine->createDataTable();
+		$metaManager = $this->dbo->createMetaManager();
+		$dataBase = $metaManager->createDataBase();
+
+		if (!$this->pdoCacheEngine->doesDataTableExist($dataBase)) {
+			$this->pdoCacheEngine->createDataTable($dataBase);
 			$tablesCreated = true;
 		}
 
-		if (!$this->pdoCacheEngine->doesCharacteristicTableExist()) {
-			$this->pdoCacheEngine->createCharacteristicTable();
+		if (!$this->pdoCacheEngine->doesCharacteristicTableExist($dataBase)) {
+			$this->pdoCacheEngine->createCharacteristicTable($dataBase);
 			$tablesCreated = true;
+		}
+
+		if ($tablesCreated) {
+			$metaManager->flush();
 		}
 
 		return $tablesCreated;

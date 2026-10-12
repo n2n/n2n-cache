@@ -28,13 +28,13 @@ class DboCacheStoreTest extends TestCase {
 	function testWrite(): void {
 		$store = (new DboCacheStore($this->pdo))->setDboCacheDataSize(DboCacheDataSize::STRING);
 
-		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
-		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
+		$this->assertFalse($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_data'));
+		$this->assertFalse($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_characteristic'));
 
 		$store->store('holeradio', CharacteristicsList::fromArg(['key' => 'value1']), 'data1');
 
-		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
-		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
+		$this->assertTrue($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_data'));
+		$this->assertTrue($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_characteristic'));
 
 		$store->store('holeradio', CharacteristicsList::fromArg(['key' => 'value2', 'o-key' => 'o-value']), 'data2');
 
@@ -45,13 +45,13 @@ class DboCacheStoreTest extends TestCase {
 	function testRead(): void {
 		$store = (new DboCacheStore($this->pdo))->setDboCacheDataSize(DboCacheDataSize::STRING);
 
-		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
-		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
+		$this->assertFalse($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_data'));
+		$this->assertFalse($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_characteristic'));
 
 		$this->assertNull($store->get('holeradio', CharacteristicsList::fromArg(['key' => 'value1'])));
 
-		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
-		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
+		$this->assertTrue($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_data'));
+		$this->assertTrue($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_characteristic'));
 
 		$store->store('holeradio', CharacteristicsList::fromArg(['key' => 'value2', 'o-key' => 'o-value']), 'data2');
 		$this->assertEquals('data2', $store->get('holeradio', CharacteristicsList::fromArg(['key' => 'value2', 'o-key' => 'o-value']))
@@ -61,13 +61,13 @@ class DboCacheStoreTest extends TestCase {
 	function testFindAll(): void {
 		$store = (new DboCacheStore($this->pdo))->setDboCacheDataSize(DboCacheDataSize::STRING);
 
-		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
-		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
+		$this->assertFalse($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_data'));
+		$this->assertFalse($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_characteristic'));
 
 		$this->assertEmpty($store->findAll('holeradio', CharacteristicsList::fromArg(['key' => 'value1'])));
 
-		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
-		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
+		$this->assertTrue($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_data'));
+		$this->assertTrue($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_characteristic'));
 
 		$store->store('holeradio', CharacteristicsList::fromArg(['key' => 'value2']), 'data2');
 		$this->assertEquals('data2', $store->findAll('holeradio', CharacteristicsList::fromArg(['key' => 'value2']))[0]->getData());
@@ -79,13 +79,13 @@ class DboCacheStoreTest extends TestCase {
 	function testRemove(): void {
 		$store = (new DboCacheStore($this->pdo))->setDboCacheDataSize(DboCacheDataSize::STRING);
 
-		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
-		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
+		$this->assertFalse($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_data'));
+		$this->assertFalse($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_characteristic'));
 
 		$store->remove('holeradio', CharacteristicsList::fromArg(['key' => 'value1']));
 
-		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
-		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
+		$this->assertTrue($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_data'));
+		$this->assertTrue($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_characteristic'));
 
 		$store->store('holeradio', CharacteristicsList::fromArg(['key' => 'value2']), 'data2');
 		$this->assertCount(1, $this->pdoUtil->select('cached_data', null));
@@ -100,13 +100,13 @@ class DboCacheStoreTest extends TestCase {
 	function testRemoveAll(): void {
 		$store = (new DboCacheStore($this->pdo))->setDboCacheDataSize(DboCacheDataSize::STRING);
 
-		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
-		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
+		$this->assertFalse($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_data'));
+		$this->assertFalse($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_characteristic'));
 
 		$store->removeAll('holeradio', CharacteristicsList::fromArg(['key' => 'value1']));
 
-		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
-		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
+		$this->assertTrue($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_data'));
+		$this->assertTrue($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_characteristic'));
 
 		$store->store('holeradio', CharacteristicsList::fromArg(['key' => 'value2']), 'data2');
 		$this->assertCount(1, $this->pdoUtil->select('cached_data', null));
@@ -121,13 +121,13 @@ class DboCacheStoreTest extends TestCase {
 	function testClear(): void {
 		$store = (new DboCacheStore($this->pdo))->setDboCacheDataSize(DboCacheDataSize::STRING);
 
-		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
-		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
+		$this->assertFalse($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_data'));
+		$this->assertFalse($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_characteristic'));
 
 		$store->clear();
 
-		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
-		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
+		$this->assertTrue($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_data'));
+		$this->assertTrue($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_characteristic'));
 
 		$store->store('holeradio', CharacteristicsList::fromArg(['key' => 'value2']), 'data2');
 		$this->assertCount(1, $this->pdoUtil->select('cached_data', null));
@@ -144,13 +144,13 @@ class DboCacheStoreTest extends TestCase {
 	function testGarbageCollectTableCreation(): void {
 		$store = (new DboCacheStore($this->pdo))->setDboCacheDataSize(DboCacheDataSize::STRING);
 
-		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
-		$this->assertFalse($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
+		$this->assertFalse($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_data'));
+		$this->assertFalse($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_characteristic'));
 
 		$store->garbageCollect();
 
-		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_data'));
-		$this->assertTrue($this->pdo->getMetaData()->getDatabase()->containsMetaEntityName('cached_characteristic'));
+		$this->assertTrue($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_data'));
+		$this->assertTrue($this->pdo->createMetaManager()->createDatabase()->containsMetaEntityName('cached_characteristic'));
 	}
 
 	/**

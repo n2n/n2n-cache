@@ -14,6 +14,7 @@ use n2n\spec\dbo\meta\structure\IndexType;
 use n2n\util\BinaryUtils;
 use n2n\spec\dbo\err\DboException;
 use n2n\cache\CharacteristicsList;
+use n2n\spec\dbo\meta\structure\Database;
 
 class DboCacheEngine {
 	const NAME_COLUMN = 'name';
@@ -542,13 +543,11 @@ class DboCacheEngine {
 	}
 
 
-	function doesDataTableExist(): bool {
-		return $this->dbo->getMetaData()->getDatabase()->containsMetaEntityName($this->dataTableName);
+	function doesDataTableExist(Database $database): bool {
+		return $database->containsMetaEntityName($this->dataTableName);
 	}
 
-	function createDataTable(): void {
-		$metaData = $this->dbo->getMetaData();
-		$database = $metaData->getDatabase();
+	function createDataTable(Database $database): void {
 		$dataTable = $database->createMetaEntityFactory()->createTable($this->dataTableName);
 		$columnFactory = $dataTable->createColumnFactory();
 		$columnFactory->createBinaryColumn(self::NAME_COLUMN, self::MAX_LENGTH)->setNullAllowed(false);
@@ -572,17 +571,13 @@ class DboCacheEngine {
 						->setNullAllowed(false);
 				break;
 		}
-
-		$metaData->getMetaManager()->flush();
 	}
 
-	function doesCharacteristicTableExist(): bool {
-		return $this->dbo->getMetaData()->getDatabase()->containsMetaEntityName($this->characteristicTableName);
+	function doesCharacteristicTableExist(Database $database): bool {
+		return $database->containsMetaEntityName($this->characteristicTableName);
 	}
 
-	function createCharacteristicTable(): void {
-		$metaData = $this->dbo->getMetaData();
-		$database = $metaData->getDatabase();
+	function createCharacteristicTable(Database $database): void {
 		$characteristicTable = $database->createMetaEntityFactory()->createTable($this->characteristicTableName);
 		$columnFactory = $characteristicTable->createColumnFactory();
 		$columnFactory->createBinaryColumn(self::NAME_COLUMN, self::MAX_LENGTH)->setNullAllowed(false);
@@ -595,8 +590,6 @@ class DboCacheEngine {
 		$characteristicTable->createIndex(IndexType::INDEX, [self::CHARACTERISTIC_COLUMN, self::NAME_COLUMN]);
 		$characteristicTable->createIndex(IndexType::INDEX, [self::CREATED_AT_COLUMN]);
 		$characteristicTable->createIndex(IndexType::INDEX, [self::EXPIRES_AT_COLUMN]);
-
-		$metaData->getMetaManager()->flush();
 	}
 
 }
