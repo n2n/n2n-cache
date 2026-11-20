@@ -99,6 +99,7 @@ class Psr16Decorator implements CacheInterface {
 	 * @inheritDoc
 	 */
 	public function getMultiple(iterable $keys, mixed $default = null): iterable {
+		$keys = is_array($keys) ? $keys : iterator_to_array($keys, false);
 		array_walk($keys, fn ($key) => $this->valKey($key));
 		$items = [];
 		foreach ($keys as $key) {
@@ -125,6 +126,7 @@ class Psr16Decorator implements CacheInterface {
 	 * @inheritDoc
 	 */
 	public function deleteMultiple(iterable $keys): bool {
+		$keys = is_array($keys) ? $keys : iterator_to_array($keys, false);
 		array_walk($keys, fn ($key) => $this->valKey($key));
 		try {
 			foreach ($keys as $key) {

@@ -14,7 +14,7 @@ class CacheStores {
 		return new DboCacheStore($dbo);
 	}
 
-	static function file(FsPath $dirPath, string|int $dirPerm = null, string|int $filePerm = null): FileCacheStore {
+	static function file(FsPath $dirPath, string|int|null $dirPerm = null, string|int|null $filePerm = null): FileCacheStore {
 		return new FileCacheStore($dirPath, $dirPerm, $filePerm);
 	}
 
